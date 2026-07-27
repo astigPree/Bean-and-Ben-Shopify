@@ -3,9 +3,78 @@
     "hero": {
       "type": "hero-section",
       "settings": {}
+    },
+    "venue_info": {
+      "type": "venue-info-strip",
+      "blocks": {
+        "location": {
+          "type": "fact",
+          "settings": {
+            "icon": "location",
+            "title": "ROOFTOP CAFÉ",
+            "detail": "Silang, Cavite",
+            "show_on_mobile": true
+          }
+        },
+        "parking": {
+          "type": "fact",
+          "settings": {
+            "icon": "parking",
+            "title": "PARKING",
+            "detail": "Available",
+            "show_on_mobile": false
+          }
+        },
+        "hours": {
+          "type": "fact",
+          "settings": {
+            "icon": "hours",
+            "title": "OPEN DAILY",
+            "detail": "Until 2:00 AM",
+            "show_on_mobile": true
+          }
+        },
+        "takeaway": {
+          "type": "fact",
+          "settings": {
+            "icon": "takeaway",
+            "title": "DINE-IN + TAKEAWAY",
+            "detail": "Both available",
+            "show_on_mobile": true
+          }
+        },
+        "cowork": {
+          "type": "fact",
+          "settings": {
+            "icon": "cowork",
+            "title": "COWORK",
+            "detail": "Wi-Fi + outlets",
+            "show_on_mobile": false
+          }
+        },
+        "gaming": {
+          "type": "fact",
+          "settings": {
+            "icon": "gaming",
+            "title": "GAMING",
+            "detail": "Play + unwind",
+            "show_on_mobile": false
+          }
+        }
+      },
+      "block_order": [
+        "location",
+        "parking",
+        "hours",
+        "takeaway",
+        "cowork",
+        "gaming"
+      ],
+      "settings": {}
     }
   },
   "order": [
-    "hero"
+    "hero",
+    "venue_info"
   ]
 }

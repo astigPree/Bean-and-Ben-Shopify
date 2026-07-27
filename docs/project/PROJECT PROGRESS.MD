@@ -121,8 +121,45 @@ Theme Editor setup:
 5. Adjust the image-position controls if the cup or venue focal point is cropped.
 6. Optionally assign the secondary button link; when empty, **Explore the space** stays visible without redirecting.
 
+## Venue Information Strip
+
+Status: Complete - connected immediately below the homepage hero.
+
+Reference images:
+
+- `docs/screens/info-strip-phone.jpg`
+- `docs/screens/info-strip-pc.jpg`
+
+Implemented:
+
+- Built the phone layout as a vertical timeline with large outlined icons, editable titles, editable details, rules, stems, and timeline dots.
+- Built the desktop layout as six evenly distributed information columns along one horizontal rule.
+- Matched the phone reference by showing location, hours, and dine-in/takeaway by default while retaining all six facts on desktop.
+- Added a **Show on mobile** control to every fact block for future content changes.
+- Used Flexbox for the mobile list, desktop row, individual facts, icon alignment, and text alignment.
+- Added six reorderable Theme Editor blocks: location, parking, hours, dine-in and takeaway, coworking, and gaming.
+- Added a built-in SVG icon selector so the section needs no external icon library or asset request.
+- Added editable background, text, accent, divider, and accessibility-label settings.
+- Added explanatory Liquid and CSS comments in `sections/venue-info-strip.liquid`.
+- Connected the section after the hero in `templates/index.json`.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 42 theme files inspected with no offenses.
+- `templates/index.json`: valid JSON.
+- Venue information CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the home page and select **Venue information**.
+2. Reorder or remove facts as needed.
+3. Open each **Venue fact** block to change its icon, title, or detail.
+4. Use **Show on mobile** to control which facts appear in the phone timeline.
+5. Verify parking, opening hours, service availability, Wi-Fi, outlets, and gaming wording before publishing.
+
 ## Next Work
 
-- Review the navigation and hero at mobile and desktop sizes using the developer-controlled Shopify preview.
-- Fine-tune dimensions only after the approved logo, hero images, real menus, and button links are assigned.
-- Build the next homepage section after hero visual review.
+- Review the navigation, hero, and venue information strip using the developer-controlled Shopify preview.
+- Fine-tune dimensions only after the approved logo, hero images, real menus, and verified venue facts are assigned.
+- Build the next homepage section after visual review.
