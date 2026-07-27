@@ -1,0 +1,84 @@
+{% doc %}
+  Renders one Shopify product inside the featured menu section.
+
+  @param {product} product - Product selected from Shopify.
+  @param {string} card_style - Either "lead" or "supporting".
+  @param {string} [lead_badge] - Optional fallback badge for the lead product.
+
+  @example
+  {% render 'featured-menu-card', product: product, card_style: 'lead', lead_badge: 'Signature' %}
+{% enddoc %}
+
+{% liquid
+  assign product_badge = blank
+
+  if product.available == false
+    assign product_badge = 'Sold out'
+  elsif product.tags contains 'Bestseller'
+    assign product_badge = 'Bestseller'
+  elsif product.tags contains 'Seasonal'
+    assign product_badge = 'Seasonal'
+  elsif product.tags contains 'Signature'
+    assign product_badge = 'Signature'
+  elsif card_style == 'lead' and lead_badge != blank
+    assign product_badge = lead_badge
+  endif
+
+  assign product_image = product.featured_image
+  assign image_alt = product_image.alt | default: product.title
+  assign image_sizes = '(min-width: 990px) 24vw, 100vw'
+
+  if card_style == 'lead'
+    assign image_sizes = '(min-width: 990px) 48vw, 100vw'
+  endif
+%}
+
+<article class="featured-menu__card featured-menu__card--{{ card_style }}{% unless product.available %} is-sold-out{% endunless %}">
+  <a class="featured-menu__card-link" href="{{ product.url }}">
+    <div class="featured-menu__media">
+      {% if product_image != blank %}
+        {{
+          product_image
+          | image_url: width: 1800
+          | image_tag:
+            widths: '360, 550, 750, 1100, 1500, 1800',
+            sizes: image_sizes,
+            class: 'featured-menu__image',
+            loading: 'lazy',
+            alt: image_alt
+        }}
+      {% else %}
+        {% comment %}
+          A Shopify-generated placeholder is used only when the selected
+          product exists but does not yet have a featured image.
+        {% endcomment %}
+        {{ 'product-1' | placeholder_svg_tag: 'featured-menu__image featured-menu__image--placeholder' }}
+      {% endif %}
+    </div>
+
+    <span class="featured-menu__card-overlay" aria-hidden="true"></span>
+
+    <div class="featured-menu__card-content">
+      {% if product_badge != blank %}
+        <span class="featured-menu__badge">{{ product_badge | escape }}</span>
+      {% endif %}
+
+      <h3 class="featured-menu__product-title">{{ product.title | escape }}</h3>
+
+      <span class="featured-menu__product-rule" aria-hidden="true"></span>
+
+      {% if product.description != blank %}
+        <p class="featured-menu__product-description">
+          {{ product.description | strip_html | truncatewords: 14 }}
+        </p>
+      {% endif %}
+
+      <p class="featured-menu__price">
+        {% if product.price_varies %}
+          <span>From</span>
+        {% endif %}
+        {{ product.price | money }}
+      </p>
+    </div>
+  </a>
+</article>

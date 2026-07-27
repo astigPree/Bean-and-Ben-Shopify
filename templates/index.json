@@ -71,10 +71,15 @@
         "gaming"
       ],
       "settings": {}
+    },
+    "featured_menu": {
+      "type": "featured-menu",
+      "settings": {}
     }
   },
   "order": [
     "hero",
-    "venue_info"
+    "venue_info",
+    "featured_menu"
   ]
 }

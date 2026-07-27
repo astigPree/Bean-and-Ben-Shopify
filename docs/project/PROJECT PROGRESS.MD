@@ -158,8 +158,52 @@ Theme Editor setup:
 4. Use **Show on mobile** to control which facts appear in the phone timeline.
 5. Verify parking, opening hours, service availability, Wi-Fi, outlets, and gaming wording before publishing.
 
+## Featured Menu
+
+Status: Complete - connected below the venue information strip.
+
+Reference images:
+
+- `docs/screens/menu-section-phone.jpg`
+- `docs/screens/menu-section-pc.jpg`
+
+Implemented:
+
+- Built the section mobile-first with one large lead-product card followed by responsive supporting cards.
+- Built the desktop composition with one dominant product beside four smaller product cards.
+- Used Flexbox for the section, product regions, supporting cards, content, empty state, and menu action.
+- Added a Shopify **Featured products** selector supporting up to five manually ordered products.
+- Added an optional Shopify collection fallback when no individual products are selected.
+- Rendered product image, title, description, price, availability, URL, and supported product-tag badges from Shopify data.
+- Added automatic badge support for `Bestseller`, `Seasonal`, and `Signature` product tags.
+- Added a Shopify-generated image placeholder only when a selected product has no featured image.
+- Added a branded **The menu is brewing** empty state when no products are available, without fake products or prices.
+- Added an optional uploadable section background image with editable position and dark-overlay strength.
+- Kept the existing dark textured CSS background as the fallback when no background image is uploaded.
+- Added explanatory Liquid and CSS comments in `sections/featured-menu.liquid`.
+- Added a documented reusable product-card snippet in `snippets/featured-menu-card.liquid`.
+- Connected the component spacing to the global mobile and desktop section-spacing settings.
+- Connected the section after the venue information strip in `templates/index.json`.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 44 theme files inspected with no offenses.
+- `templates/index.json`: valid JSON.
+- Featured menu CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the home page and select **Featured menu**.
+2. Select up to five products under **Featured products**; the first becomes the large card.
+3. Optionally select a **Fallback collection**.
+4. Add `Bestseller`, `Seasonal`, or `Signature` tags to Shopify products when a badge is needed.
+5. Set the menu link, or allow it to use the selected collection or all-products page.
+6. Ensure each selected Shopify product has a featured image, description, current price, and correct availability.
+7. Optionally upload a **Background image**, then adjust its position and overlay strength for readable text.
+
 ## Next Work
 
-- Review the navigation, hero, and venue information strip using the developer-controlled Shopify preview.
-- Fine-tune dimensions only after the approved logo, hero images, real menus, and verified venue facts are assigned.
+- Review the navigation, hero, venue information strip, and featured menu using the developer-controlled Shopify preview.
+- Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.

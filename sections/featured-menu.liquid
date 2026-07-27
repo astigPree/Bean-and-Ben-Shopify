@@ -1,0 +1,750 @@
+{% liquid
+  assign featured_products = section.settings.products
+
+  if featured_products == blank
+    if section.settings.collection != blank
+      assign featured_products = section.settings.collection.products
+    endif
+  endif
+
+  assign featured_product_count = featured_products | size
+  assign menu_link = section.settings.menu_link
+  assign background_overlay_opacity = section.settings.background_overlay_opacity | divided_by: 100.0
+
+  if menu_link == blank
+    if section.settings.collection != blank
+      assign menu_link = section.settings.collection.url
+    else
+      assign menu_link = routes.all_products_collection_url
+    endif
+  endif
+%}
+
+<section
+  class="featured-menu full-width"
+  style="
+    --featured-menu-background: {{ section.settings.background_color }};
+    --featured-menu-surface: {{ section.settings.surface_color }};
+    --featured-menu-text: {{ section.settings.text_color }};
+    --featured-menu-accent: {{ section.settings.accent_color }};
+    --featured-menu-background-position: {{ section.settings.background_image_position }};
+    --featured-menu-background-overlay: {{ background_overlay_opacity }};
+  "
+>
+  {% if section.settings.background_image != blank %}
+    {% comment %}
+      This image is decorative and sits behind the section content.
+      Its position and dark overlay can be adjusted in the Theme Editor.
+    {% endcomment %}
+    <div class="featured-menu__background" aria-hidden="true">
+      {{
+        section.settings.background_image
+        | image_url: width: 3200
+        | image_tag:
+          widths: '750, 1100, 1500, 2000, 2600, 3200',
+          sizes: '100vw',
+          class: 'featured-menu__background-image',
+          loading: 'lazy',
+          alt: ''
+      }}
+    </div>
+    <span class="featured-menu__background-overlay" aria-hidden="true"></span>
+  {% endif %}
+
+  <div class="featured-menu__inner">
+    <header class="featured-menu__header">
+      {% if section.settings.eyebrow != blank %}
+        <p class="featured-menu__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {% endif %}
+
+      {% if section.settings.heading != blank %}
+        <h2 class="featured-menu__heading">{{ section.settings.heading | escape }}</h2>
+      {% endif %}
+
+      {% if section.settings.description != blank %}
+        <p class="featured-menu__description">{{ section.settings.description | escape }}</p>
+      {% endif %}
+    </header>
+
+    {% comment %}
+      Products are sourced only from Shopify. The manually selected product
+      list is preferred; the selected collection is used when that list is empty.
+    {% endcomment %}
+    {% if featured_product_count > 0 %}
+      <div class="featured-menu__products">
+        {% for product in featured_products limit: 1 %}
+          {% render 'featured-menu-card',
+            product: product,
+            card_style: 'lead',
+            lead_badge: section.settings.lead_badge
+          %}
+        {% endfor %}
+
+        {% if featured_product_count > 1 %}
+          <div class="featured-menu__supporting">
+            {% for product in featured_products offset: 1 limit: 4 %}
+              {% render 'featured-menu-card', product: product, card_style: 'supporting' %}
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% else %}
+      {% comment %}
+        This branded empty state prevents a broken or blank section before
+        products are selected, without inventing fake products or prices.
+      {% endcomment %}
+      <div class="featured-menu__empty">
+        <svg class="featured-menu__empty-icon" viewBox="0 0 96 96" fill="none" aria-hidden="true">
+          <path d="M24 35h43l-4 43H28l-4-43Z"></path>
+          <path d="M21 27h49M30 19h31M67 43h6a10 10 0 0 1 0 20h-8"></path>
+          <path d="M37 53c4-5 18-5 22 0M40 62h16"></path>
+        </svg>
+
+        <div class="featured-menu__empty-content">
+          <p class="featured-menu__empty-heading">{{ section.settings.empty_heading | escape }}</p>
+          <p class="featured-menu__empty-text">{{ section.settings.empty_text | escape }}</p>
+
+          {% if request.design_mode %}
+            <p class="featured-menu__editor-note">
+              Select featured products or a fallback collection in this section's settings.
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if section.settings.menu_label != blank %}
+      <div class="featured-menu__footer">
+        <span class="featured-menu__footer-rule" aria-hidden="true"></span>
+        <a class="featured-menu__menu-link" href="{{ menu_link }}">
+          <span>{{ section.settings.menu_label | escape }}</span>
+          <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+            <path d="M1 10h28M21 2l8 8-8 8"></path>
+          </svg>
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% stylesheet %}
+  /* Mobile-first section foundation and typography. */
+  .featured-menu {
+    position: relative;
+    overflow: hidden;
+    color: var(--featured-menu-text, #f3f0e8);
+    background:
+      radial-gradient(circle at 75% 30%, rgb(255 255 255 / 4%), transparent 30rem),
+      radial-gradient(circle at 15% 85%, rgb(211 163 90 / 5%), transparent 24rem),
+      var(--featured-menu-background, #050505);
+    isolation: isolate;
+  }
+
+  .featured-menu__background,
+  .featured-menu__background-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .featured-menu__background {
+    z-index: -2;
+    display: flex;
+  }
+
+  .featured-menu__background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--featured-menu-background-position, center center);
+  }
+
+  .featured-menu__background-overlay {
+    z-index: -1;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 30%), transparent 24%, rgb(0 0 0 / 45%) 100%),
+      var(--featured-menu-background, #050505);
+    opacity: var(--featured-menu-background-overlay, 0.65);
+  }
+
+  .featured-menu__inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: min(100%, var(--page-width, 90rem));
+    flex-direction: column;
+    gap: 2.25rem;
+    margin-inline: auto;
+    padding:
+      var(--mobile-section-spacing, 4.5rem)
+      var(--page-margin, 1.25rem);
+  }
+
+  .featured-menu__header {
+    display: flex;
+    max-width: 70rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .featured-menu__eyebrow {
+    margin: 0 0 1.25rem;
+    color: var(--featured-menu-accent, #d3a35a);
+    font-size: clamp(0.8rem, 3.6vw, 1rem);
+    font-weight: 650;
+    letter-spacing: 0.3em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .featured-menu__heading {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(3.5rem, 15vw, 5.25rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.005em;
+    line-height: 0.9;
+    text-wrap: balance;
+    text-transform: uppercase;
+  }
+
+  .featured-menu__description {
+    max-width: 42rem;
+    margin: 1.5rem 0 0;
+    font-size: clamp(1rem, 4.5vw, 1.25rem);
+    line-height: 1.6;
+  }
+
+  /*
+   * The lead product and supporting products are separate Flexbox regions.
+   * This lets desktop create one large card beside four smaller cards.
+   */
+  .featured-menu__products {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .featured-menu__supporting {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .featured-menu__card {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--featured-menu-accent, #d3a35a) 72%, transparent);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    background: var(--featured-menu-surface, #151515);
+  }
+
+  .featured-menu__card--lead {
+    min-height: clamp(34rem, 145vw, 44rem);
+  }
+
+  .featured-menu__card--supporting {
+    width: 100%;
+    min-height: 27rem;
+    flex: 1 1 100%;
+  }
+
+  .featured-menu__card-link {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    align-items: flex-end;
+    color: inherit;
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .featured-menu__media,
+  .featured-menu__card-overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .featured-menu__media {
+    z-index: -3;
+    display: flex;
+    background: var(--featured-menu-surface, #151515);
+  }
+
+  .featured-menu__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform 400ms ease;
+  }
+
+  .featured-menu__image--placeholder {
+    padding: 18%;
+    color: color-mix(in srgb, var(--featured-menu-accent, #d3a35a) 45%, transparent);
+    background: var(--featured-menu-surface, #151515);
+    fill: currentColor;
+  }
+
+  .featured-menu__card-overlay {
+    z-index: -2;
+    background:
+      linear-gradient(180deg, transparent 22%, rgb(0 0 0 / 20%) 50%, rgb(0 0 0 / 92%) 100%),
+      linear-gradient(90deg, rgb(0 0 0 / 78%) 0%, transparent 75%);
+  }
+
+  .featured-menu__card-content {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: clamp(1.25rem, 6vw, 2rem);
+  }
+
+  .featured-menu__badge {
+    display: inline-flex;
+    min-height: 2.25rem;
+    align-items: center;
+    justify-content: center;
+    margin-block-end: 1.25rem;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--featured-menu-accent, #d3a35a);
+    color: var(--featured-menu-accent, #d3a35a);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.1;
+    text-transform: uppercase;
+  }
+
+  .featured-menu__product-title,
+  .featured-menu__empty-heading {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.015em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .featured-menu__product-title {
+    max-width: 15ch;
+    font-size: clamp(2.4rem, 11vw, 4rem);
+  }
+
+  .featured-menu__product-rule {
+    position: relative;
+    display: block;
+    width: min(100%, 18rem);
+    height: 1px;
+    margin-block: 1.25rem;
+    background: color-mix(in srgb, var(--featured-menu-accent, #d3a35a) 70%, transparent);
+  }
+
+  .featured-menu__product-rule::before {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0;
+    width: 0.45rem;
+    height: 0.45rem;
+    content: '';
+    background: var(--featured-menu-accent, #d3a35a);
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  .featured-menu__product-description {
+    max-width: 28rem;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  .featured-menu__price {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 1.25rem 0 0;
+    color: var(--featured-menu-accent, #d3a35a);
+    font-size: clamp(1.8rem, 8vw, 2.8rem);
+    font-weight: 650;
+    line-height: 1;
+  }
+
+  .featured-menu__price span {
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .featured-menu__card.is-sold-out .featured-menu__image {
+    filter: grayscale(0.65);
+  }
+
+  /* Branded fallback shown when Shopify has no selected products to render. */
+  .featured-menu__empty {
+    display: flex;
+    min-height: 25rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding: clamp(2.5rem, 10vw, 5rem) 1.5rem;
+    border: 1px solid var(--featured-menu-accent, #d3a35a);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    text-align: center;
+    background:
+      linear-gradient(135deg, rgb(255 255 255 / 3%), transparent 50%),
+      var(--featured-menu-surface, #151515);
+  }
+
+  .featured-menu__empty-icon {
+    width: clamp(5rem, 22vw, 8rem);
+    color: var(--featured-menu-accent, #d3a35a);
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  .featured-menu__empty-content {
+    display: flex;
+    max-width: 36rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .featured-menu__empty-heading {
+    font-size: clamp(2.75rem, 11vw, 4.5rem);
+  }
+
+  .featured-menu__empty-text,
+  .featured-menu__editor-note {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .featured-menu__editor-note {
+    color: var(--featured-menu-accent, #d3a35a);
+    font-size: 0.85rem;
+  }
+
+  .featured-menu__footer {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .featured-menu__footer-rule {
+    display: none;
+    height: 1px;
+    flex: 1 1 auto;
+    background: color-mix(in srgb, var(--featured-menu-accent, #d3a35a) 70%, transparent);
+  }
+
+  .featured-menu__menu-link {
+    display: inline-flex;
+    width: 100%;
+    min-height: 4.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--featured-menu-accent, #d3a35a);
+    color: var(--featured-menu-accent, #d3a35a);
+    font-size: clamp(0.8rem, 3.5vw, 1rem);
+    font-weight: 650;
+    letter-spacing: 0.2em;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .featured-menu__menu-link svg {
+    width: 2rem;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.5;
+  }
+
+  @media (hover: hover) {
+    .featured-menu__card-link:hover .featured-menu__image {
+      transform: scale(1.025);
+    }
+
+    .featured-menu__menu-link:hover {
+      color: var(--featured-menu-background, #050505);
+      background: var(--featured-menu-accent, #d3a35a);
+    }
+  }
+
+  @media screen and (min-width: 600px) {
+    .featured-menu__card--supporting {
+      width: calc(50% - 0.5rem);
+      flex-basis: calc(50% - 0.5rem);
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .featured-menu__inner {
+      gap: 3rem;
+      padding:
+        var(--desktop-section-spacing, 8.75rem)
+        var(--desktop-page-margin, 4rem);
+    }
+
+    .featured-menu__eyebrow {
+      margin-block-end: 1.5rem;
+      font-size: 1rem;
+    }
+
+    .featured-menu__heading {
+      font-size: clamp(5rem, 7.4vw, 8rem);
+    }
+
+    .featured-menu__description {
+      font-size: 1.2rem;
+    }
+
+    .featured-menu__products {
+      min-height: 48rem;
+      flex-direction: row;
+    }
+
+    .featured-menu__card--lead {
+      width: calc(50% - 0.5rem);
+      min-height: 48rem;
+      flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .featured-menu__supporting {
+      width: calc(50% - 0.5rem);
+      flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .featured-menu__card--supporting {
+      width: calc(50% - 0.5rem);
+      min-height: calc(50% - 0.5rem);
+      flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .featured-menu__card--lead .featured-menu__card-content {
+      width: min(58%, 30rem);
+      padding: 2.75rem;
+    }
+
+    .featured-menu__card--supporting .featured-menu__card-content {
+      padding: 1.5rem;
+    }
+
+    .featured-menu__card--supporting .featured-menu__product-title {
+      font-size: clamp(1.75rem, 2.5vw, 2.8rem);
+    }
+
+    .featured-menu__card--supporting .featured-menu__product-description {
+      display: none;
+    }
+
+    .featured-menu__card--supporting .featured-menu__price {
+      font-size: clamp(1.5rem, 2vw, 2.25rem);
+    }
+
+    .featured-menu__empty {
+      min-height: 32rem;
+      flex-direction: row;
+      text-align: start;
+    }
+
+    .featured-menu__empty-content {
+      align-items: flex-start;
+    }
+
+    .featured-menu__footer-rule {
+      display: block;
+    }
+
+    .featured-menu__menu-link {
+      width: min(100%, 28rem);
+      min-height: 5rem;
+      flex: 0 0 28rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .featured-menu__image,
+    .featured-menu__menu-link {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Featured menu",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "FROM THE BAR"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FEATURED COFFEE & BESTSELLERS"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Signature drinks worth coming upstairs for."
+    },
+    {
+      "type": "product_list",
+      "id": "products",
+      "label": "Featured products",
+      "limit": 5,
+      "info": "Select up to five Shopify products. The first product becomes the large feature."
+    },
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Fallback collection",
+      "info": "Used only when no individual featured products are selected."
+    },
+    {
+      "type": "text",
+      "id": "lead_badge",
+      "label": "Lead product fallback badge",
+      "default": "Signature",
+      "info": "Product tags Bestseller, Seasonal, or Signature take priority."
+    },
+    {
+      "type": "text",
+      "id": "menu_label",
+      "label": "Menu link label",
+      "default": "Explore full menu"
+    },
+    {
+      "type": "url",
+      "id": "menu_link",
+      "label": "Menu link",
+      "info": "If empty, the selected collection or all-products page is used."
+    },
+    {
+      "type": "header",
+      "content": "Empty state"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Heading",
+      "default": "THE MENU IS BREWING"
+    },
+    {
+      "type": "textarea",
+      "id": "empty_text",
+      "label": "Message",
+      "default": "Featured products will appear here soon."
+    },
+    {
+      "type": "header",
+      "content": "Background image"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image",
+      "info": "Optional. The dark background color remains visible when no image is selected."
+    },
+    {
+      "type": "select",
+      "id": "background_image_position",
+      "label": "Image position",
+      "options": [
+        {
+          "value": "center center",
+          "label": "Center"
+        },
+        {
+          "value": "center top",
+          "label": "Top"
+        },
+        {
+          "value": "center bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "left center",
+          "label": "Left"
+        },
+        {
+          "value": "right center",
+          "label": "Right"
+        }
+      ],
+      "default": "center center"
+    },
+    {
+      "type": "range",
+      "id": "background_overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Dark overlay strength",
+      "default": 65
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#050505"
+    },
+    {
+      "type": "color",
+      "id": "surface_color",
+      "label": "Card surface",
+      "default": "#151515"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#F3F0E8"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#D3A35A"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured menu"
+    }
+  ]
+}
+{% endschema %}
