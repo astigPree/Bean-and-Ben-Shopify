@@ -1,0 +1,643 @@
+{% liquid
+  assign map_alt = section.settings.map_alt
+
+  if map_alt == blank
+    assign map_alt = 'Map showing the location of Bean & Ben'
+  endif
+%}
+
+<section
+  class="visit-bean-ben full-width"
+  style="
+    --visit-background: {{ section.settings.background_color }};
+    --visit-surface: {{ section.settings.surface_color }};
+    --visit-text: {{ section.settings.text_color }};
+    --visit-border: {{ section.settings.border_color }};
+    --visit-button-background: {{ section.settings.button_background }};
+    --visit-button-text: {{ section.settings.button_text_color }};
+    --visit-map-position: {{ section.settings.map_position }};
+  "
+  aria-labelledby="VisitBeanBenHeading-{{ section.id }}"
+>
+  <div class="visit-bean-ben__panel">
+    <div class="visit-bean-ben__content">
+      {% if section.settings.heading != blank %}
+        <h2 id="VisitBeanBenHeading-{{ section.id }}" class="visit-bean-ben__heading">
+          {{ section.settings.heading | escape }}
+        </h2>
+      {% endif %}
+
+      {% comment %}
+        Each venue fact uses an inline SVG so no external icon library or
+        additional asset is required. All visible text is editable.
+      {% endcomment %}
+      <div class="visit-bean-ben__facts">
+        {% if section.settings.address != blank %}
+          <div class="visit-bean-ben__fact">
+            <svg class="visit-bean-ben__fact-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <path d="M24 44s14-13.2 14-27A14 14 0 1 0 10 17c0 13.8 14 27 14 27Z"></path>
+              <circle cx="24" cy="17" r="5"></circle>
+            </svg>
+            <p>{{ section.settings.address | escape | newline_to_br }}</p>
+          </div>
+        {% endif %}
+
+        {% if section.settings.hours != blank %}
+          <div class="visit-bean-ben__fact">
+            <svg class="visit-bean-ben__fact-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <circle cx="24" cy="24" r="18"></circle>
+              <path d="M24 13v12l8 5"></path>
+            </svg>
+            <p>{{ section.settings.hours | escape }}</p>
+          </div>
+        {% endif %}
+
+        {% if section.settings.parking != blank %}
+          <div class="visit-bean-ben__fact">
+            <svg class="visit-bean-ben__fact-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <rect x="10" y="8" width="28" height="32" rx="2"></rect>
+              <path d="M19 34V15h7a6 6 0 0 1 0 12h-7M19 27h7"></path>
+            </svg>
+            <p>{{ section.settings.parking | escape }}</p>
+          </div>
+        {% endif %}
+
+        {% if section.settings.landmark != blank %}
+          <div class="visit-bean-ben__fact">
+            <svg class="visit-bean-ben__fact-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <path d="m6 12 11-5 14 6 11-5v28l-11 5-14-6-11 5V12Z"></path>
+              <path d="M17 7v28M31 13v28"></path>
+            </svg>
+            <p>{{ section.settings.landmark | escape }}</p>
+          </div>
+        {% endif %}
+      </div>
+
+      {% comment %}
+        When a URL is not assigned, the matching action stays visible as a
+        disabled span. This keeps the reference layout intact without creating
+        an unwanted empty link.
+      {% endcomment %}
+      <div class="visit-bean-ben__actions">
+        {% if section.settings.directions_label != blank %}
+          {% if section.settings.directions_link != blank %}
+            <a
+              class="visit-bean-ben__button visit-bean-ben__button--primary"
+              href="{{ section.settings.directions_link }}"
+              {% if section.settings.open_directions_new_tab %}
+                target="_blank"
+                rel="noopener"
+              {% endif %}
+            >
+              {{ section.settings.directions_label | escape }}
+            </a>
+          {% else %}
+            <span
+              class="visit-bean-ben__button visit-bean-ben__button--primary is-disabled"
+              aria-disabled="true"
+            >
+              {{ section.settings.directions_label | escape }}
+            </span>
+          {% endif %}
+        {% endif %}
+
+        {% if section.settings.message_label != blank %}
+          {% if section.settings.message_link != blank %}
+            <a class="visit-bean-ben__button visit-bean-ben__button--secondary" href="{{ section.settings.message_link }}">
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path d="M8 9h32v24H22L13 40v-7H8V9Z"></path>
+                <circle cx="18" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+                <circle cx="24" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+                <circle cx="30" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+              </svg>
+              <span>{{ section.settings.message_label | escape }}</span>
+            </a>
+          {% else %}
+            <span
+              class="visit-bean-ben__button visit-bean-ben__button--secondary is-disabled"
+              aria-disabled="true"
+            >
+              <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                <path d="M8 9h32v24H22L13 40v-7H8V9Z"></path>
+                <circle cx="18" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+                <circle cx="24" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+                <circle cx="30" cy="21" r="1.5" fill="currentColor" stroke="none"></circle>
+              </svg>
+              <span>{{ section.settings.message_label | escape }}</span>
+            </span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="visit-bean-ben__map">
+      {% if section.settings.map_image != blank %}
+        {{
+          section.settings.map_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '550, 750, 1100, 1500, 2000, 2400',
+            sizes: '(min-width: 990px) 60vw, 100vw',
+            class: 'visit-bean-ben__map-image',
+            loading: 'lazy',
+            alt: map_alt
+        }}
+      {% else %}
+        {% comment %}
+          This lightweight map-style fallback prevents a blank or broken panel
+          before the merchant uploads the final approved map artwork.
+        {% endcomment %}
+        <div class="visit-bean-ben__map-fallback">
+          <svg class="visit-bean-ben__map-lines" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path d="M-40 110 180 70l130 95 220-75 320 65"></path>
+            <path d="M35 620 155 420l210-55 80-200 180-90"></path>
+            <path d="M-20 280 190 250l110 75 225-30 310 120"></path>
+            <path d="m105 0 35 180 130 85-45 335M680-20 610 165l65 160-130 295"></path>
+          </svg>
+
+          <div class="visit-bean-ben__map-marker">
+            <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <path d="M24 44s14-13.2 14-27A14 14 0 1 0 10 17c0 13.8 14 27 14 27Z"></path>
+              <circle cx="24" cy="17" r="5"></circle>
+            </svg>
+            <strong>{{ section.settings.map_fallback_title | escape }}</strong>
+            <span>{{ section.settings.map_fallback_text | escape }}</span>
+
+            {% if request.design_mode %}
+              <small>Upload the map image in this section's settings.</small>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  /* Mobile-first outer section and bordered panel. */
+  .visit-bean-ben {
+    color: var(--visit-text, #f5f4f0);
+    background: var(--visit-background, #030303);
+    padding:
+      var(--mobile-section-spacing, 4.5rem)
+      var(--page-margin, 1.25rem);
+  }
+
+  .visit-bean-ben__panel {
+    display: flex;
+    width: min(100%, 106rem);
+    flex-direction: column;
+    gap: 0;
+    margin-inline: auto;
+    padding: clamp(0.65rem, 2.5vw, 1rem);
+    border: 1px solid var(--visit-border, #606060);
+    border-radius: 0.45rem;
+    background: var(--visit-surface, #050505);
+  }
+
+  .visit-bean-ben__content {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.4rem, 5vw, 2.25rem) clamp(0.7rem, 2.5vw, 1.25rem) 2rem;
+  }
+
+  .visit-bean-ben__heading {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(2rem, 9.8vw, 5.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.015em;
+    line-height: 0.92;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  .visit-bean-ben__facts {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1.1rem, 5vw, 1.65rem);
+    margin-block-start: clamp(2rem, 8vw, 3.25rem);
+  }
+
+  .visit-bean-ben__fact {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1rem, 4vw, 1.5rem);
+  }
+
+  .visit-bean-ben__fact-icon {
+    width: clamp(2.1rem, 9vw, 2.8rem);
+    flex: 0 0 clamp(2.1rem, 9vw, 2.8rem);
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .visit-bean-ben__fact p {
+    margin: 0;
+    padding-block-start: 0.15rem;
+    font-size: clamp(0.95rem, 4.2vw, 1.2rem);
+    line-height: 1.45;
+  }
+
+  .visit-bean-ben__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-block-start: clamp(2rem, 8vw, 3rem);
+  }
+
+  .visit-bean-ben__button {
+    display: inline-flex;
+    width: 100%;
+    min-height: 4rem;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid var(--visit-text, #f5f4f0);
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(1rem, 4.6vw, 1.35rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .visit-bean-ben__button--primary {
+    color: var(--visit-button-text, #080808);
+    background: var(--visit-button-background, #f5f4f0);
+  }
+
+  .visit-bean-ben__button--secondary {
+    color: var(--visit-text, #f5f4f0);
+    background: transparent;
+  }
+
+  .visit-bean-ben__button svg {
+    width: 2rem;
+    flex: 0 0 2rem;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .visit-bean-ben__button.is-disabled {
+    cursor: default;
+  }
+
+  /* The phone reference places the uploaded map below the venue details. */
+  .visit-bean-ben__map {
+    position: relative;
+    display: flex;
+    min-height: 18rem;
+    overflow: hidden;
+    border: 1px solid var(--visit-border, #606060);
+    border-radius: 0.8rem;
+    background: #080808;
+    aspect-ratio: 6 / 5;
+  }
+
+  .visit-bean-ben__map-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--visit-map-position, center center);
+  }
+
+  .visit-bean-ben__map-fallback {
+    position: relative;
+    display: flex;
+    width: 100%;
+    min-height: inherit;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at center, rgb(255 255 255 / 5%), transparent 35%),
+      #080808;
+  }
+
+  .visit-bean-ben__map-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.35;
+    stroke: var(--visit-border, #606060);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 3;
+  }
+
+  .visit-bean-ben__map-marker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    max-width: 15rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .visit-bean-ben__map-marker svg {
+    width: 3.5rem;
+    margin-block-end: 0.35rem;
+    fill: var(--visit-text, #f5f4f0);
+    stroke: var(--visit-text, #f5f4f0);
+    stroke-width: 1.5;
+  }
+
+  .visit-bean-ben__map-marker strong {
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: 1.75rem;
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .visit-bean-ben__map-marker span,
+  .visit-bean-ben__map-marker small {
+    line-height: 1.4;
+  }
+
+  .visit-bean-ben__map-marker small {
+    margin-block-start: 0.75rem;
+    color: color-mix(in srgb, var(--visit-text, #f5f4f0) 65%, transparent);
+  }
+
+  @media (hover: hover) {
+    .visit-bean-ben__button--primary[href]:hover {
+      color: var(--visit-button-background, #f5f4f0);
+      background: transparent;
+    }
+
+    .visit-bean-ben__button--secondary[href]:hover {
+      color: var(--visit-button-text, #080808);
+      background: var(--visit-button-background, #f5f4f0);
+    }
+  }
+
+  /*
+   * Desktop changes the same Flexbox panel into the reference's left details
+   * and right map composition. No CSS Grid is needed.
+   */
+  @media screen and (min-width: 990px) {
+    .visit-bean-ben {
+      padding:
+        var(--desktop-section-spacing, 8.75rem)
+        var(--desktop-page-margin, 4rem);
+    }
+
+    .visit-bean-ben__panel {
+      min-height: 43rem;
+      flex-direction: row;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .visit-bean-ben__content {
+      width: 40%;
+      flex: 0 0 40%;
+      justify-content: center;
+      padding: clamp(2.75rem, 4vw, 4.5rem);
+    }
+
+    .visit-bean-ben__heading {
+      font-size: clamp(3.75rem, 4.4vw, 6.25rem);
+      white-space: nowrap;
+    }
+
+    .visit-bean-ben__facts {
+      gap: 1.4rem;
+      margin-block-start: 2.75rem;
+    }
+
+    .visit-bean-ben__fact {
+      gap: 1.4rem;
+    }
+
+    .visit-bean-ben__fact-icon {
+      width: 2.4rem;
+      flex-basis: 2.4rem;
+    }
+
+    .visit-bean-ben__fact p {
+      font-size: clamp(1rem, 1.15vw, 1.3rem);
+    }
+
+    .visit-bean-ben__actions {
+      margin-block-start: 2.5rem;
+    }
+
+    .visit-bean-ben__button {
+      min-height: 4.5rem;
+      font-size: clamp(1.05rem, 1.25vw, 1.4rem);
+    }
+
+    .visit-bean-ben__map {
+      width: 60%;
+      min-height: 100%;
+      flex: 1 1 60%;
+      border: 0;
+      border-left: 1px solid var(--visit-border, #606060);
+      border-radius: 0;
+      aspect-ratio: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .visit-bean-ben__button {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Visit Bean & Ben",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Venue information"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "SUNDAN ANG LIWANAG"
+    },
+    {
+      "type": "textarea",
+      "id": "address",
+      "label": "Address",
+      "default": "Rooftop of 888 Martinez Building,\nBrgy. Anahaw I, Silang, Cavite"
+    },
+    {
+      "type": "text",
+      "id": "hours",
+      "label": "Opening hours",
+      "default": "Daily  •  6:00 PM–2:00 AM"
+    },
+    {
+      "type": "text",
+      "id": "parking",
+      "label": "Parking information",
+      "default": "Parking Available"
+    },
+    {
+      "type": "text",
+      "id": "landmark",
+      "label": "Nearby landmark",
+      "default": "Near Silang Municipal Hall"
+    },
+    {
+      "type": "header",
+      "content": "Actions"
+    },
+    {
+      "type": "text",
+      "id": "directions_label",
+      "label": "Directions button label",
+      "default": "Get directions"
+    },
+    {
+      "type": "url",
+      "id": "directions_link",
+      "label": "Directions link"
+    },
+    {
+      "type": "checkbox",
+      "id": "open_directions_new_tab",
+      "label": "Open directions in a new tab",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "message_label",
+      "label": "Message button label",
+      "default": "Message us"
+    },
+    {
+      "type": "url",
+      "id": "message_link",
+      "label": "Message link"
+    },
+    {
+      "type": "header",
+      "content": "Map"
+    },
+    {
+      "type": "image_picker",
+      "id": "map_image",
+      "label": "Map image",
+      "info": "Upload the approved Bean & Ben map artwork."
+    },
+    {
+      "type": "text",
+      "id": "map_alt",
+      "label": "Map alternative text",
+      "default": "Map showing the location of Bean & Ben in Silang, Cavite"
+    },
+    {
+      "type": "select",
+      "id": "map_position",
+      "label": "Map image position",
+      "options": [
+        {
+          "value": "center center",
+          "label": "Center"
+        },
+        {
+          "value": "center top",
+          "label": "Top"
+        },
+        {
+          "value": "center bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "left center",
+          "label": "Left"
+        },
+        {
+          "value": "right center",
+          "label": "Right"
+        }
+      ],
+      "default": "center center"
+    },
+    {
+      "type": "text",
+      "id": "map_fallback_title",
+      "label": "Fallback map title",
+      "default": "Bean & Ben"
+    },
+    {
+      "type": "text",
+      "id": "map_fallback_text",
+      "label": "Fallback map text",
+      "default": "Silang, Cavite"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Section background",
+      "default": "#030303"
+    },
+    {
+      "type": "color",
+      "id": "surface_color",
+      "label": "Panel background",
+      "default": "#050505"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#F5F4F0"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border",
+      "default": "#606060"
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "Primary button background",
+      "default": "#F5F4F0"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Primary button text",
+      "default": "#080808"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Visit Bean & Ben"
+    }
+  ]
+}
+{% endschema %}

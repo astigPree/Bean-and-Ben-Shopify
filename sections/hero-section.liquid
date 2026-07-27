@@ -1,0 +1,530 @@
+{% liquid
+  assign desktop_background = section.settings.desktop_background
+  assign mobile_background = section.settings.mobile_background
+
+  if desktop_background == blank
+    assign desktop_background = mobile_background
+  endif
+
+  if mobile_background == blank
+    assign mobile_background = desktop_background
+  endif
+
+  assign overlay_opacity = section.settings.overlay_opacity | divided_by: 100.0
+  assign primary_link = section.settings.primary_link | default: routes.all_products_collection_url
+%}
+
+<section
+  class="hero-section full-width"
+  style="
+    --hero-mobile-min-height: {{ section.settings.mobile_min_height }}px;
+    --hero-desktop-min-height: {{ section.settings.desktop_min_height }}px;
+    --hero-mobile-position: {{ section.settings.mobile_image_position_x }}% {{ section.settings.mobile_image_position_y }}%;
+    --hero-desktop-position: {{ section.settings.desktop_image_position_x }}% {{ section.settings.desktop_image_position_y }}%;
+    --hero-overlay-opacity: {{ overlay_opacity }};
+  "
+>
+  {% comment %}
+    The background is decorative, so its alt text is intentionally empty.
+    If only one image is uploaded, it is reused for both phone and desktop sizes.
+  {% endcomment %}
+  {% if mobile_background != blank %}
+    <picture class="hero-section__media">
+      {% if desktop_background != blank %}
+        <source
+          media="(min-width: 750px)"
+          srcset="
+            {{ desktop_background | image_url: width: 1200 }} 1200w,
+            {{ desktop_background | image_url: width: 1800 }} 1800w,
+            {{ desktop_background | image_url: width: 2400 }} 2400w,
+            {{ desktop_background | image_url: width: 3200 }} 3200w
+          "
+          sizes="100vw"
+        >
+      {% endif %}
+
+      {{
+        mobile_background
+        | image_url: width: 1800
+        | image_tag:
+          widths: '375, 550, 750, 1100, 1500, 1800',
+          sizes: '100vw',
+          class: 'hero-section__image',
+          loading: 'eager',
+          fetchpriority: 'high',
+          alt: ''
+      }}
+    </picture>
+  {% endif %}
+
+  {% comment %}
+    This overlay keeps all text readable when the merchant uploads a bright photo.
+  {% endcomment %}
+  <div class="hero-section__overlay" aria-hidden="true"></div>
+
+  <div class="hero-section__inner">
+    <div class="hero-section__content">
+      {% if section.settings.eyebrow != blank %}
+        <p class="hero-section__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+      {% endif %}
+
+      {% if section.settings.heading != blank %}
+        <h1 class="hero-section__heading">
+          {{ section.settings.heading | escape | newline_to_br }}
+        </h1>
+      {% endif %}
+
+      {% if section.settings.description != blank %}
+        <p class="hero-section__description">{{ section.settings.description | escape | newline_to_br }}</p>
+      {% endif %}
+
+      <div class="hero-section__actions">
+        {% if section.settings.primary_label != blank %}
+          <a class="hero-section__button hero-section__button--primary" href="{{ primary_link }}">
+            {{ section.settings.primary_label | escape }}
+          </a>
+        {% endif %}
+
+        {% if section.settings.secondary_label != blank %}
+          {% if section.settings.secondary_link != blank %}
+            <a
+              class="hero-section__button hero-section__button--secondary"
+              href="{{ section.settings.secondary_link }}"
+            >
+              {{ section.settings.secondary_label | escape }}
+            </a>
+          {% else %}
+            {% comment %}
+              Keep the secondary action visible without causing navigation
+              until a destination is selected in the Theme Editor.
+            {% endcomment %}
+            <button
+              class="hero-section__button hero-section__button--secondary"
+              type="button"
+              disabled
+            >
+              {{ section.settings.secondary_label | escape }}
+            </button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% if section.settings.show_scroll_cue %}
+      <div class="hero-section__scroll-cue" aria-hidden="true">
+        <svg viewBox="0 0 24 40" fill="none">
+          <path d="M12 1v35M4 28l8 8 8-8"></path>
+        </svg>
+        <span>{{ section.settings.scroll_label | escape }}</span>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% stylesheet %}
+  /* Hero foundation: the header overlays this section on the home page. */
+  .hero-section {
+    position: relative;
+    display: flex;
+    min-height: max(100svh, var(--hero-mobile-min-height));
+    overflow: hidden;
+    color: var(--color-foreground, #f3f0e8);
+    background: var(--color-background, #050505);
+    isolation: isolate;
+  }
+
+  .hero-section__media {
+    position: absolute;
+    z-index: -3;
+    inset: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero-section__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--hero-mobile-position);
+  }
+
+  .hero-section__overlay {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgb(0 0 0 / 38%) 0%, transparent 34%, rgb(0 0 0 / 52%) 100%),
+      linear-gradient(90deg, #000 0%, rgb(0 0 0 / 72%) 45%, transparent 100%);
+    opacity: var(--hero-overlay-opacity);
+    pointer-events: none;
+  }
+
+  /* Flexbox keeps the copy at the top and the scroll cue near the bottom. */
+  .hero-section__inner {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    padding: 10rem var(--page-margin, 1.25rem) 2rem;
+  }
+
+  .hero-section__content {
+    display: flex;
+    width: min(100%, 42rem);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero-section__eyebrow {
+    margin: 0 0 1.5rem;
+    color: var(--color-highlight, #d3a35a);
+    font-size: clamp(0.75rem, 3.4vw, 0.95rem);
+    font-weight: 650;
+    letter-spacing: 0.28em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .hero-section__heading {
+    margin: 0;
+    color: var(--color-foreground, #f3f0e8);
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(3.25rem, 15vw, 4.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.005em;
+    line-height: 0.9;
+    text-wrap: balance;
+    text-transform: uppercase;
+  }
+
+  .hero-section__description {
+    max-width: 34rem;
+    margin: 2rem 0 0;
+    font-size: clamp(1rem, 4.6vw, 1.25rem);
+    letter-spacing: 0.015em;
+    line-height: 1.65;
+  }
+
+  .hero-section__actions {
+    display: flex;
+    width: min(100%, 23rem);
+    flex-direction: column;
+    gap: 1rem;
+    margin-block-start: 2rem;
+  }
+
+  .hero-section__button {
+    display: inline-flex;
+    min-height: 3.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.9rem 1.25rem;
+    border: 1px solid transparent;
+    border-radius: var(--style-border-radius-buttons, 4px);
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.2em;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .hero-section__button--primary {
+    color: var(--color-button-text, #050505);
+    background: var(--color-highlight, #d3a35a);
+  }
+
+  .hero-section__button--secondary {
+    border-color: var(--color-foreground, #f3f0e8);
+    background: rgb(0 0 0 / 12%);
+  }
+
+  .hero-section__button:disabled {
+    opacity: 1;
+    cursor: default;
+  }
+
+  .hero-section__scroll-cue {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    margin-block-start: auto;
+    padding-block-start: 2.5rem;
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .hero-section__scroll-cue svg {
+    width: 1.4rem;
+    height: 2.5rem;
+    stroke: var(--color-highlight, #d3a35a);
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.25;
+  }
+
+  @media (hover: hover) {
+    .hero-section__button--primary:hover {
+      color: var(--color-background, #050505);
+      background: var(--color-foreground, #f3f0e8);
+    }
+
+    .hero-section__button--secondary:hover {
+      color: var(--color-button-text, #050505);
+      border-color: var(--color-highlight, #d3a35a);
+      background: var(--color-highlight, #d3a35a);
+    }
+  }
+
+  @media screen and (min-width: 750px) {
+    .hero-section {
+      min-height: max(100svh, var(--hero-desktop-min-height));
+    }
+
+    .hero-section__image {
+      object-position: var(--hero-desktop-position);
+    }
+
+    .hero-section__overlay {
+      background:
+        linear-gradient(180deg, rgb(0 0 0 / 25%) 0%, transparent 30%, rgb(0 0 0 / 38%) 100%),
+        linear-gradient(90deg, #000 0%, rgb(0 0 0 / 72%) 38%, transparent 75%);
+    }
+
+    .hero-section__inner {
+      padding:
+        clamp(11rem, 19vh, 14rem)
+        var(--desktop-page-margin, 4rem)
+        clamp(2.5rem, 5vh, 4rem);
+    }
+
+    .hero-section__content {
+      width: min(62vw, 60rem);
+    }
+
+    .hero-section__eyebrow {
+      margin-block-end: 2rem;
+      font-size: clamp(0.85rem, 1.05vw, 1.15rem);
+    }
+
+    .hero-section__heading {
+      font-size: clamp(4.5rem, 9vw, 8rem);
+      line-height: 0.88;
+    }
+
+    .hero-section__description {
+      margin-block-start: 2.25rem;
+      font-size: clamp(1rem, 1.2vw, 1.3rem);
+      line-height: 1.65;
+    }
+
+    .hero-section__actions {
+      width: auto;
+      flex-direction: row;
+      gap: 1rem;
+      margin-block-start: 2.25rem;
+    }
+
+    .hero-section__button {
+      min-width: 12.5rem;
+      min-height: 4rem;
+      padding-inline: 2rem;
+    }
+
+    .hero-section__scroll-cue {
+      width: fit-content;
+      flex-direction: row;
+      gap: 1.25rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-section__button {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Hero section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Background images"
+    },
+    {
+      "type": "image_picker",
+      "id": "mobile_background",
+      "label": "Mobile background image",
+      "info": "Optional. Recommended portrait image. No image is selected by default."
+    },
+    {
+      "type": "image_picker",
+      "id": "desktop_background",
+      "label": "Desktop background image",
+      "info": "Optional. Recommended landscape image. If empty, the mobile image is reused."
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "label": "Dark overlay strength",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "COFFEE · COWORK · PLAY"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "FOR YOUR\nBREAKS &\nBREAKTHROUGHS."
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "A rooftop coffee destination built for good drinks, focused work, and better nights."
+    },
+    {
+      "type": "header",
+      "content": "Actions"
+    },
+    {
+      "type": "text",
+      "id": "primary_label",
+      "label": "Primary button label",
+      "default": "View menu"
+    },
+    {
+      "type": "url",
+      "id": "primary_link",
+      "label": "Primary button link",
+      "info": "If empty, the button links to the all-products collection."
+    },
+    {
+      "type": "text",
+      "id": "secondary_label",
+      "label": "Secondary button label",
+      "default": "Explore the space"
+    },
+    {
+      "type": "url",
+      "id": "secondary_link",
+      "label": "Secondary button link",
+      "info": "Optional. When empty, the button remains visible but does not navigate."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_cue",
+      "label": "Show scroll cue",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "scroll_label",
+      "label": "Scroll cue text",
+      "default": "Scroll to discover"
+    },
+    {
+      "type": "header",
+      "content": "Mobile layout"
+    },
+    {
+      "type": "range",
+      "id": "mobile_min_height",
+      "min": 600,
+      "max": 1000,
+      "step": 25,
+      "unit": "px",
+      "label": "Minimum hero height",
+      "default": 800
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_position_x",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Image horizontal position",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "mobile_image_position_y",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Image vertical position",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Desktop layout"
+    },
+    {
+      "type": "range",
+      "id": "desktop_min_height",
+      "min": 600,
+      "max": 1000,
+      "step": 25,
+      "unit": "px",
+      "label": "Minimum hero height",
+      "default": 800
+    },
+    {
+      "type": "range",
+      "id": "desktop_image_position_x",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Image horizontal position",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "desktop_image_position_y",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "label": "Image vertical position",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero section"
+    }
+  ]
+}
+{% endschema %}

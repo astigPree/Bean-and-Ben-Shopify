@@ -1,0 +1,456 @@
+<section
+  class="venue-info-strip full-width"
+  style="
+    --info-background: {{ section.settings.background_color }};
+    --info-text: {{ section.settings.text_color }};
+    --info-accent: {{ section.settings.accent_color }};
+    --info-divider: {{ section.settings.divider_color }};
+  "
+  aria-label="{{ section.settings.accessibility_label | escape }}"
+>
+  {% comment %}
+    Each information item is a Shopify block, so its icon, title, detail,
+    position, and visibility can be managed from the Theme Editor.
+  {% endcomment %}
+  <div class="venue-info-strip__list" role="list">
+    {% for block in section.blocks %}
+      <article
+        class="venue-info-strip__item{% unless block.settings.show_on_mobile %} venue-info-strip__item--desktop-only{% endunless %}"
+        role="listitem"
+        {{ block.shopify_attributes }}
+      >
+        <div class="venue-info-strip__icon-track" aria-hidden="true">
+          <div class="venue-info-strip__icon">
+            {% comment %}
+              The SVG icon library stays inside this component so it requires
+              no external icon package or additional asset request.
+            {% endcomment %}
+            {% case block.settings.icon %}
+              {% when 'location' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <path d="M32 31s9-8.5 9-16a9 9 0 1 0-18 0c0 7.5 9 16 9 16Z"></path>
+                  <circle cx="32" cy="15" r="3.5"></circle>
+                  <path d="m13 41 11-7 10 6 7-4 10 6v10H13V41Z"></path>
+                  <path d="M20 52V42h9v10M39 52V40"></path>
+                </svg>
+
+              {% when 'parking' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <rect x="14" y="10" width="36" height="44" rx="2"></rect>
+                  <path d="M27 45V19h8.5a8 8 0 0 1 0 16H27"></path>
+                </svg>
+
+              {% when 'hours' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <circle cx="32" cy="32" r="21"></circle>
+                  <path d="M32 18v15l10 7"></path>
+                  <path d="M32 8v4M32 52v4M8 32h4M52 32h4"></path>
+                </svg>
+
+              {% when 'takeaway' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <path d="M10 25h16l-2 27H12l-2-27Z"></path>
+                  <path d="M9 20h18M13 16h10"></path>
+                  <path d="M33 20h20l-2 32H35l-2-32Z"></path>
+                  <path d="M37 20v-5h12v5M37 27h12"></path>
+                </svg>
+
+              {% when 'cowork' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <rect x="11" y="23" width="42" height="27" rx="2"></rect>
+                  <path d="M7 55h50M25 17a10 10 0 0 1 14 0M29 21a4 4 0 0 1 6 0"></path>
+                  <circle cx="32" cy="27" r="1" fill="currentColor" stroke="none"></circle>
+                </svg>
+
+              {% when 'gaming' %}
+                <svg viewBox="0 0 64 64" fill="none">
+                  <path d="M20 24h24c7 0 11 6 12 19 .5 6-6 9-10 4l-5-6H23l-5 6c-4 5-10.5 2-10-4 1-13 5-19 12-19Z"></path>
+                  <path d="M20 30v10M15 35h10"></path>
+                  <circle cx="43" cy="33" r="2"></circle>
+                  <circle cx="49" cy="38" r="2"></circle>
+                </svg>
+            {% endcase %}
+          </div>
+          <span class="venue-info-strip__stem"></span>
+        </div>
+
+        <div class="venue-info-strip__content">
+          {% if block.settings.title != blank %}
+            <p class="venue-info-strip__title">{{ block.settings.title | escape }}</p>
+          {% endif %}
+
+          {% if block.settings.detail != blank %}
+            <p class="venue-info-strip__detail">{{ block.settings.detail | escape | newline_to_br }}</p>
+          {% endif %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+
+{% stylesheet %}
+  /* Mobile first: the facts form the vertical timeline shown in the phone reference. */
+  .venue-info-strip {
+    /* Compact icon sizing keeps the phone timeline informative without dominating the page. */
+    --info-icon-size: clamp(5.75rem, 25vw, 7rem);
+    --info-item-padding: 2rem;
+
+    overflow: hidden;
+    color: var(--info-text, #050505);
+    background: var(--info-background, #f3f0e8);
+  }
+
+  .venue-info-strip__list {
+    display: flex;
+    width: min(100%, var(--page-width, 90rem));
+    flex-direction: column;
+    margin-inline: auto;
+    padding: 0.75rem var(--page-margin, 1.25rem) 3rem;
+  }
+
+  .venue-info-strip__item {
+    position: relative;
+    display: flex;
+    min-height: 10.5rem;
+    align-items: stretch;
+    gap: clamp(1rem, 4vw, 1.5rem);
+    padding-block: var(--info-item-padding);
+  }
+
+  .venue-info-strip__item--desktop-only {
+    display: none;
+  }
+
+  .venue-info-strip__item:not(:last-child)::after {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    height: 1px;
+    content: '';
+    background: var(--info-divider, #c7cbd0);
+  }
+
+  .venue-info-strip__icon-track {
+    position: relative;
+    display: flex;
+    width: var(--info-icon-size);
+    flex: 0 0 var(--info-icon-size);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .venue-info-strip__icon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: var(--info-icon-size);
+    height: var(--info-icon-size);
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--info-accent, #d3a35a);
+    border-radius: 50%;
+    color: var(--info-accent, #d3a35a);
+    background: var(--info-background, #f3f0e8);
+  }
+
+  .venue-info-strip__icon svg {
+    width: 58%;
+    height: 58%;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.65;
+  }
+
+  .venue-info-strip__stem {
+    position: absolute;
+    inset-block-start: calc(50% + (var(--info-icon-size) / 2));
+    inset-block-end: calc(-1 * var(--info-item-padding));
+    inset-inline-start: 50%;
+    width: 1px;
+    background: var(--info-accent, #d3a35a);
+  }
+
+  .venue-info-strip__stem::after {
+    position: absolute;
+    inset-block-end: -0.3rem;
+    inset-inline-start: 50%;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    content: '';
+    background: var(--info-accent, #d3a35a);
+    transform: translateX(-50%);
+  }
+
+  .venue-info-strip__content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.85rem;
+  }
+
+  .venue-info-strip__title {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(2.35rem, 10vw, 4rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.015em;
+    line-height: 0.95;
+    text-transform: uppercase;
+  }
+
+  .venue-info-strip__detail {
+    margin: 0;
+    font-size: clamp(1rem, 4.5vw, 1.35rem);
+    letter-spacing: 0.025em;
+    line-height: 1.45;
+  }
+
+  /*
+   * Desktop turns the same block list into a horizontal information band.
+   * The icon backgrounds cover the long rule so it appears to pass behind them.
+   */
+  @media screen and (min-width: 990px) {
+    .venue-info-strip {
+      --info-icon-size: clamp(6rem, 6.5vw, 7.25rem);
+    }
+
+    .venue-info-strip__list {
+      position: relative;
+      flex-direction: row;
+      padding:
+        clamp(3rem, 4vw, 4.5rem)
+        var(--desktop-page-margin, 4rem)
+        clamp(3.5rem, 4.5vw, 5rem);
+    }
+
+    .venue-info-strip__list::before {
+      position: absolute;
+      inset-block-start: calc(clamp(3rem, 4vw, 4.5rem) + (var(--info-icon-size) / 2));
+      inset-inline: 0;
+      height: 1px;
+      content: '';
+      background: var(--info-accent, #d3a35a);
+    }
+
+    .venue-info-strip__item {
+      min-width: 0;
+      min-height: 0;
+      flex: 1 1 0;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      padding: 0 clamp(0.75rem, 1.25vw, 1.5rem);
+      text-align: center;
+    }
+
+    .venue-info-strip__item--desktop-only {
+      display: flex;
+    }
+
+    .venue-info-strip__item:not(:last-child)::after {
+      inset-block-start: calc(var(--info-icon-size) + 2.5rem);
+      inset-block-end: auto;
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+      width: 1px;
+      height: 6.5rem;
+      background: var(--info-divider, #c7cbd0);
+    }
+
+    .venue-info-strip__icon-track {
+      width: var(--info-icon-size);
+      height: var(--info-icon-size);
+      flex-basis: var(--info-icon-size);
+      align-self: center;
+    }
+
+    .venue-info-strip__stem {
+      inset-block-start: 100%;
+      inset-block-end: auto;
+      height: 1.5rem;
+    }
+
+    .venue-info-strip__content {
+      align-items: center;
+      gap: 0.65rem;
+      margin-block-start: 2.5rem;
+    }
+
+    .venue-info-strip__title {
+      font-size: clamp(1.8rem, 2.1vw, 2.65rem);
+      line-height: 1;
+    }
+
+    .venue-info-strip__detail {
+      font-size: clamp(0.9rem, 1.1vw, 1.2rem);
+      line-height: 1.4;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Venue information",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "accessibility_label",
+      "label": "Accessibility label",
+      "default": "Venue information"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F3F0E8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#050505"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Icons and timeline",
+      "default": "#D3A35A"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Dividers",
+      "default": "#C7CBD0"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "fact",
+      "name": "Venue fact",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            {
+              "value": "location",
+              "label": "Location"
+            },
+            {
+              "value": "parking",
+              "label": "Parking"
+            },
+            {
+              "value": "hours",
+              "label": "Opening hours"
+            },
+            {
+              "value": "takeaway",
+              "label": "Dine-in and takeaway"
+            },
+            {
+              "value": "cowork",
+              "label": "Cowork"
+            },
+            {
+              "value": "gaming",
+              "label": "Gaming"
+            }
+          ],
+          "default": "location"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "Venue fact"
+        },
+        {
+          "type": "textarea",
+          "id": "detail",
+          "label": "Detail",
+          "default": "Add verified information"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_on_mobile",
+          "label": "Show on mobile",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Venue information",
+      "blocks": [
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "location",
+            "title": "ROOFTOP CAFÉ",
+            "detail": "Silang, Cavite",
+            "show_on_mobile": true
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "parking",
+            "title": "PARKING",
+            "detail": "Available",
+            "show_on_mobile": false
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "hours",
+            "title": "OPEN DAILY",
+            "detail": "Until 2:00 AM",
+            "show_on_mobile": true
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "takeaway",
+            "title": "DINE-IN + TAKEAWAY",
+            "detail": "Both available",
+            "show_on_mobile": true
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "cowork",
+            "title": "COWORK",
+            "detail": "Wi-Fi + outlets",
+            "show_on_mobile": false
+          }
+        },
+        {
+          "type": "fact",
+          "settings": {
+            "icon": "gaming",
+            "title": "GAMING",
+            "detail": "Play + unwind",
+            "show_on_mobile": false
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
