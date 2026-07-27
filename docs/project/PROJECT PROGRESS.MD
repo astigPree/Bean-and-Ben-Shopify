@@ -98,6 +98,7 @@ Implemented:
 - Added separate uploadable phone and desktop background images; both are empty by default.
 - Added automatic image fallback so one uploaded image can serve both screen sizes.
 - Added editable eyebrow, multiline heading, description, primary action, secondary action, and scroll cue.
+- Kept **Explore the space** visible as a non-navigating button when its link is empty; assigning a link automatically makes it functional.
 - Added independent phone and desktop image-position controls to keep the subject visible after cropping.
 - Added adjustable dark-overlay strength and minimum-height controls.
 - Used Flexbox for the content, action buttons, and scroll-cue layouts.
@@ -118,7 +119,7 @@ Theme Editor setup:
 3. Upload the portrait artwork under **Mobile background image**.
 4. Upload the landscape artwork under **Desktop background image**.
 5. Adjust the image-position controls if the cup or venue focal point is cropped.
-6. Assign the secondary button link to make **Explore the space** visible.
+6. Optionally assign the secondary button link; when empty, **Explore the space** stays visible without redirecting.
 
 ## Next Work
 

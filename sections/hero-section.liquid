@@ -85,13 +85,27 @@
           </a>
         {% endif %}
 
-        {% if section.settings.secondary_label != blank and section.settings.secondary_link != blank %}
-          <a
-            class="hero-section__button hero-section__button--secondary"
-            href="{{ section.settings.secondary_link }}"
-          >
-            {{ section.settings.secondary_label | escape }}
-          </a>
+        {% if section.settings.secondary_label != blank %}
+          {% if section.settings.secondary_link != blank %}
+            <a
+              class="hero-section__button hero-section__button--secondary"
+              href="{{ section.settings.secondary_link }}"
+            >
+              {{ section.settings.secondary_label | escape }}
+            </a>
+          {% else %}
+            {% comment %}
+              Keep the secondary action visible without causing navigation
+              until a destination is selected in the Theme Editor.
+            {% endcomment %}
+            <button
+              class="hero-section__button hero-section__button--secondary"
+              type="button"
+              disabled
+            >
+              {{ section.settings.secondary_label | escape }}
+            </button>
+          {% endif %}
         {% endif %}
       </div>
     </div>
@@ -209,6 +223,7 @@
     border: 1px solid transparent;
     border-radius: var(--style-border-radius-buttons, 4px);
     color: inherit;
+    font-family: inherit;
     font-size: 0.8rem;
     font-weight: 650;
     letter-spacing: 0.2em;
@@ -216,6 +231,7 @@
     text-align: center;
     text-decoration: none;
     text-transform: uppercase;
+    cursor: pointer;
     transition:
       color 160ms ease,
       background-color 160ms ease,
@@ -230,6 +246,11 @@
   .hero-section__button--secondary {
     border-color: var(--color-foreground, #f3f0e8);
     background: rgb(0 0 0 / 12%);
+  }
+
+  .hero-section__button:disabled {
+    opacity: 1;
+    cursor: default;
   }
 
   .hero-section__scroll-cue {
@@ -417,7 +438,7 @@
       "type": "url",
       "id": "secondary_link",
       "label": "Secondary button link",
-      "info": "The secondary button is hidden until a link is selected."
+      "info": "Optional. When empty, the button remains visible but does not navigate."
     },
     {
       "type": "checkbox",
