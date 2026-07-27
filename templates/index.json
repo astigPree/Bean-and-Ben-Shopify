@@ -20,14 +20,9 @@
 // }
 
 {
-  "sections" : {
-    "main" : {
-      "type" : "hello-world",
-      "settings" : {}
-    }
+  "sections" : { 
   },
-  "order" : [
-    "main"
+  "order" : [ 
   ]
 
 }
