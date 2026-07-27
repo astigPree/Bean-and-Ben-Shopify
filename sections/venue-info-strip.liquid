@@ -91,8 +91,9 @@
 {% stylesheet %}
   /* Mobile first: the facts form the vertical timeline shown in the phone reference. */
   .venue-info-strip {
-    --info-icon-size: clamp(7rem, 31vw, 8.75rem);
-    --info-item-padding: 2.75rem;
+    /* Compact icon sizing keeps the phone timeline informative without dominating the page. */
+    --info-icon-size: clamp(5.75rem, 25vw, 7rem);
+    --info-item-padding: 2rem;
 
     overflow: hidden;
     color: var(--info-text, #050505);
@@ -104,15 +105,15 @@
     width: min(100%, var(--page-width, 90rem));
     flex-direction: column;
     margin-inline: auto;
-    padding: 1rem var(--page-margin, 1.25rem) 4rem;
+    padding: 0.75rem var(--page-margin, 1.25rem) 3rem;
   }
 
   .venue-info-strip__item {
     position: relative;
     display: flex;
-    min-height: 13rem;
+    min-height: 10.5rem;
     align-items: stretch;
-    gap: clamp(1.25rem, 5vw, 2rem);
+    gap: clamp(1rem, 4vw, 1.5rem);
     padding-block: var(--info-item-padding);
   }
 
@@ -215,21 +216,21 @@
    */
   @media screen and (min-width: 990px) {
     .venue-info-strip {
-      --info-icon-size: clamp(7.5rem, 8vw, 9rem);
+      --info-icon-size: clamp(6rem, 6.5vw, 7.25rem);
     }
 
     .venue-info-strip__list {
       position: relative;
       flex-direction: row;
       padding:
-        clamp(4rem, 6vw, 6rem)
+        clamp(3rem, 4vw, 4.5rem)
         var(--desktop-page-margin, 4rem)
-        clamp(4.5rem, 7vw, 6.5rem);
+        clamp(3.5rem, 4.5vw, 5rem);
     }
 
     .venue-info-strip__list::before {
       position: absolute;
-      inset-block-start: calc(clamp(4rem, 6vw, 6rem) + (var(--info-icon-size) / 2));
+      inset-block-start: calc(clamp(3rem, 4vw, 4.5rem) + (var(--info-icon-size) / 2));
       inset-inline: 0;
       height: 1px;
       content: '';
@@ -252,12 +253,12 @@
     }
 
     .venue-info-strip__item:not(:last-child)::after {
-      inset-block-start: calc(var(--info-icon-size) + 3.25rem);
+      inset-block-start: calc(var(--info-icon-size) + 2.5rem);
       inset-block-end: auto;
       inset-inline-start: auto;
       inset-inline-end: 0;
       width: 1px;
-      height: 7.75rem;
+      height: 6.5rem;
       background: var(--info-divider, #c7cbd0);
     }
 
@@ -271,13 +272,13 @@
     .venue-info-strip__stem {
       inset-block-start: 100%;
       inset-block-end: auto;
-      height: 2rem;
+      height: 1.5rem;
     }
 
     .venue-info-strip__content {
       align-items: center;
-      gap: 0.8rem;
-      margin-block-start: 3.25rem;
+      gap: 0.65rem;
+      margin-block-start: 2.5rem;
     }
 
     .venue-info-strip__title {

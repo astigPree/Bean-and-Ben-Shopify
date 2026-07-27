@@ -140,6 +140,7 @@ Implemented:
 - Added six reorderable Theme Editor blocks: location, parking, hours, dine-in and takeaway, coworking, and gaming.
 - Added a built-in SVG icon selector so the section needs no external icon library or asset request.
 - Added editable background, text, accent, divider, and accessibility-label settings.
+- Reduced the phone and desktop icon scale by about 20% and tightened the related timeline and section spacing.
 - Added explanatory Liquid and CSS comments in `sections/venue-info-strip.liquid`.
 - Connected the section after the hero in `templates/index.json`.
 
