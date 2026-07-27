@@ -292,8 +292,53 @@ Theme Editor setup:
 5. Upload the approved map under **Map image**.
 6. Add meaningful map alternative text and adjust **Map image position** if the marker is cropped.
 
+## Footer
+
+Status: Complete - globally connected after page content.
+
+Reference images:
+
+- `docs/screens/footer-section-phone.jpg`
+- `docs/screens/footer-section-pc.jpg`
+
+Implemented:
+
+- Rebuilt the existing footer section mobile-first from the supplied phone reference.
+- Built the wide desktop composition with brand, three navigation columns, and newsletter in one Flexbox row.
+- Enabled the existing `footer-group` in `layout/theme.liquid`, placing it below Visit Bean & Ben on the homepage and below content on all other storefront templates.
+- Added editable brand title, tagline, copyright name, copyright message, and location.
+- Added editable Facebook, Instagram, and TikTok URLs with inline SVG icons.
+- Kept social icons visible as non-clickable placeholders until their URLs are assigned.
+- Added selectable Shopify navigation menus for **Explore**, **Experiences**, and **Information**.
+- Added reference-matching fallback link labels when navigation menus have not yet been selected.
+- Added a functional Shopify customer newsletter form with editable heading, text, placeholder, and success message.
+- Added newsletter validation and success/error feedback.
+- Added editable footer, text, muted text, border, and newsletter-button colors.
+- Added a dynamic copyright year so it updates automatically.
+- Corrected the social SVG paint rules so filled Facebook/TikTok marks and the outlined Instagram mark render cleanly.
+- Reduced mobile and desktop footer height with smaller typography, tighter navigation/newsletter spacing, shorter controls, and more natural website-footer padding.
+- Applied the theme's full-width section utility so the footer background spans the complete screen while its inner content remains centered.
+- Added explanatory Liquid and CSS comments throughout `sections/footer.liquid`.
+- Used Flexbox for the complete mobile and desktop layout; no CSS Grid was added.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 46 theme files inspected with no offenses.
+- Homepage template: valid JSON.
+- Footer CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the Shopify Theme Editor and select **Footer** in the global footer group.
+2. Select Shopify menus for **Explore menu**, **Experiences menu**, and **Information menu**.
+3. Add the approved Facebook, Instagram, and TikTok URLs.
+4. Confirm the brand title, tagline, newsletter copy, copyright text, and location.
+5. Adjust footer colors only if the approved design palette changes.
+6. Submit a test email through the storefront after previewing to confirm the Shopify customer/newsletter capture.
+
 ## Next Work
 
-- Review the navigation, hero, venue information strip, featured menu, rooftop carousel, and Visit Bean & Ben section using the developer-controlled Shopify preview.
+- Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.
 - Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.
