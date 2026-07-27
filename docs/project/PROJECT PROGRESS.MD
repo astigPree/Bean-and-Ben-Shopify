@@ -87,8 +87,41 @@ Recommended mobile menu order from the reference:
 10. Visit Us
 11. Contact
 
+## Hero Section
+
+Status: Complete - ready for image assignment and visual review in Shopify.
+
+Implemented:
+
+- Added the hero to `templates/index.json` so it renders directly beneath the overlaid header.
+- Built the section mobile-first from `hero-section-phone.jpg`, with responsive desktop behavior from `hero-section-pc.jpg`.
+- Added separate uploadable phone and desktop background images; both are empty by default.
+- Added automatic image fallback so one uploaded image can serve both screen sizes.
+- Added editable eyebrow, multiline heading, description, primary action, secondary action, and scroll cue.
+- Added independent phone and desktop image-position controls to keep the subject visible after cropping.
+- Added adjustable dark-overlay strength and minimum-height controls.
+- Used Flexbox for the content, action buttons, and scroll-cue layouts.
+- Added clear Liquid and CSS comments inside `sections/hero-section.liquid`.
+- Connected the global display-font setting to CSS variables for the condensed hero heading.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 41 theme files inspected with no offenses.
+- `templates/index.json`: valid JSON.
+- Hero CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the home page in the Theme Editor.
+2. Open **Hero section**.
+3. Upload the portrait artwork under **Mobile background image**.
+4. Upload the landscape artwork under **Desktop background image**.
+5. Adjust the image-position controls if the cup or venue focal point is cropped.
+6. Assign the secondary button link to make **Explore the space** visible.
+
 ## Next Work
 
-- Review the navigation at mobile and desktop sizes using the developer-controlled Shopify preview.
-- Fine-tune dimensions only after the approved logo asset and real Shopify menus are assigned.
-- Build the hero section and visually connect its content beneath the overlaid home-page header.
+- Review the navigation and hero at mobile and desktop sizes using the developer-controlled Shopify preview.
+- Fine-tune dimensions only after the approved logo, hero images, real menus, and button links are assigned.
+- Build the next homepage section after hero visual review.
