@@ -22,7 +22,7 @@
 {
   "sections" : {
     "main" : {
-      "type" : "hero-banner",
+      "type" : "hello-world",
       "settings" : {}
     }
   },

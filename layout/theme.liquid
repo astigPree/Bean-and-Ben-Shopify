@@ -20,9 +20,6 @@
     {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
 
-    {% # Load and preload the theme js %}
-    {{ 'theme.js' | asset_url | script_tag }}
-
 
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
@@ -31,10 +28,10 @@
   </head>
 
   <body>
-    {% sections 'header-group' %}
+    {% comment %} {% sections 'header-group' %} {% endcomment %}
 
     {{ content_for_layout }}
 
-    {% sections 'footer-group' %}
+    {% comment %} {% sections 'footer-group' %} {% endcomment %}
   </body>
 </html>
