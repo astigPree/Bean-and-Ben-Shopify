@@ -185,11 +185,14 @@ Implemented:
 - Added a documented reusable product-card snippet in `snippets/featured-menu-card.liquid`.
 - Connected the component spacing to the global mobile and desktop section-spacing settings.
 - Connected the section after the venue information strip in `templates/index.json`.
+- Rebuilt the featured-menu cards against the supplied phone and desktop references: a cinematic lead product, two-column supporting products, image-and-copy card splits, orange badges/rules, and the bordered full-menu CTA.
+- Grouped each Shopify product's heading and details so the title, description, and price follow the reference's editorial spacing without hard-coded product content.
+- Updated the default section description and accent orange to match the approved reference more closely.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 44 theme files inspected with no offenses.
+- Result: 45 theme files inspected with no offenses after the reference-alignment rebuild.
 - `templates/index.json`: valid JSON.
 - Featured menu CSS: no CSS Grid layout used.
 

@@ -59,26 +59,34 @@
     <span class="featured-menu__card-overlay" aria-hidden="true"></span>
 
     <div class="featured-menu__card-content">
-      {% if product_badge != blank %}
-        <span class="featured-menu__badge">{{ product_badge | escape }}</span>
-      {% endif %}
-
-      <h3 class="featured-menu__product-title">{{ product.title | escape }}</h3>
-
-      <span class="featured-menu__product-rule" aria-hidden="true"></span>
-
-      {% if product.description != blank %}
-        <p class="featured-menu__product-description">
-          {{ product.description | strip_html | truncatewords: 14 }}
-        </p>
-      {% endif %}
-
-      <p class="featured-menu__price">
-        {% if product.price_varies %}
-          <span>From</span>
+      {% comment %}
+        The two content groups let CSS place the name near the top and the
+        description/price near the bottom, matching the editorial reference.
+      {% endcomment %}
+      <div class="featured-menu__card-heading">
+        {% if product_badge != blank %}
+          <span class="featured-menu__badge">{{ product_badge | escape }}</span>
         {% endif %}
-        {{ product.price | money }}
-      </p>
+
+        <h3 class="featured-menu__product-title">{{ product.title | escape }}</h3>
+      </div>
+
+      <div class="featured-menu__card-details">
+        <span class="featured-menu__product-rule" aria-hidden="true"></span>
+
+        {% if product.description != blank %}
+          <p class="featured-menu__product-description">
+            {{ product.description | strip_html | truncatewords: 14 }}
+          </p>
+        {% endif %}
+
+        <p class="featured-menu__price">
+          {% if product.price_varies %}
+            <span>From</span>
+          {% endif %}
+          {{ product.price | money }}
+        </p>
+      </div>
     </div>
   </a>
 </article>
