@@ -1,11 +1,62 @@
 [
   {
     "name": "theme_info",
-    "theme_name": "Skeleton",
-    "theme_version": "0.1.0",
-    "theme_author": "Shopify",
+    "theme_name": "Bean & Ben",
+    "theme_version": "0.2.0",
+    "theme_author": "Bean & Ben",
     "theme_documentation_url": "https://help.shopify.com/manual/online-store/themes",
     "theme_support_url": "https://support.shopify.com/"
+  },
+  {
+    "name": "Brand assets",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Logos"
+      },
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Primary logo",
+        "info": "Use the supplied Bean & Ben logo artwork. Do not recreate the logo with text."
+      },
+      {
+        "type": "image_picker",
+        "id": "logo_light",
+        "label": "Logo for dark backgrounds",
+        "info": "Upload the approved light or white logo variant."
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "min": 140,
+        "max": 180,
+        "step": 5,
+        "unit": "px",
+        "label": "Desktop logo width",
+        "default": 160
+      },
+      {
+        "type": "range",
+        "id": "mobile_logo_width",
+        "min": 110,
+        "max": 140,
+        "step": 5,
+        "unit": "px",
+        "label": "Mobile logo width",
+        "default": 120
+      },
+      {
+        "type": "header",
+        "content": "Browser"
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Use a square PNG with the approved monogram or compact brand mark."
+      }
+    ]
   },
   {
     "name": "t:general.typography",
@@ -16,9 +67,41 @@
       },
       {
         "type": "font_picker",
+        "id": "type_display_font",
+        "default": "bebas_neue_n4",
+        "label": "Display font",
+        "info": "Used for hero headlines, section titles, and short campaign statements."
+      },
+      {
+        "type": "font_picker",
         "id": "type_primary_font",
-        "default": "work_sans_n4",
-        "label": "t:general.primary"
+        "default": "manrope_n4",
+        "label": "Body font",
+        "info": "Used for body copy, navigation, prices, buttons, forms, and product details."
+      },
+      {
+        "type": "header",
+        "content": "Body text"
+      },
+      {
+        "type": "range",
+        "id": "body_font_size",
+        "min": 16,
+        "max": 18,
+        "step": 1,
+        "unit": "px",
+        "label": "Body font size",
+        "default": 16
+      },
+      {
+        "type": "range",
+        "id": "body_line_height",
+        "min": 150,
+        "max": 170,
+        "step": 5,
+        "unit": "%",
+        "label": "Body line height",
+        "default": 160
       }
     ]
   },
@@ -26,17 +109,25 @@
     "name": "t:general.layout",
     "settings": [
       {
+        "type": "header",
+        "content": "Content container"
+      },
+      {
         "type": "select",
         "id": "max_page_width",
         "label": "t:labels.page_width",
         "options": [
           {
+            "value": "75rem",
+            "label": "Narrow — 1200px"
+          },
+          {
             "value": "90rem",
-            "label": "t:options.page_width.narrow"
+            "label": "Brand standard — 1440px"
           },
           {
             "value": "110rem",
-            "label": "t:options.page_width.wide"
+            "label": "Extra wide — 1760px"
           }
         ],
         "default": "90rem"
@@ -44,12 +135,46 @@
       {
         "type": "range",
         "id": "min_page_margin",
-        "min": 10,
-        "max": 100,
+        "min": 20,
+        "max": 24,
         "step": 1,
         "unit": "px",
-        "label": "t:labels.page_margin",
+        "label": "Mobile page gutter",
         "default": 20
+      },
+      {
+        "type": "range",
+        "id": "desktop_page_margin",
+        "min": 48,
+        "max": 80,
+        "step": 4,
+        "unit": "px",
+        "label": "Desktop page gutter",
+        "default": 64
+      },
+      {
+        "type": "header",
+        "content": "Section spacing"
+      },
+      {
+        "type": "range",
+        "id": "mobile_section_spacing",
+        "min": 64,
+        "max": 88,
+        "step": 4,
+        "unit": "px",
+        "label": "Mobile section spacing",
+        "default": 72
+      },
+      {
+        "type": "range",
+        "id": "desktop_section_spacing",
+        "min": 120,
+        "max": 180,
+        "step": 10,
+        "unit": "px",
+        "label": "Desktop section spacing",
+        "default": 140
       }
     ]
   },
@@ -57,44 +182,143 @@
     "name": "t:general.colors",
     "settings": [
       {
-        "type" : "color",
-        "id": "primary_color",
-        "label": "Primary Color",
-        "default": "#2563EB"
-      },
-      {
-        "type" : "color",
-        "id": "secondary_color",
-        "label": "Secondary Color",
-        "default": "#111827"
-      },
-      {
-        "type" : "color",
-        "id": "button_text_color",
-        "label": "Button Text Color",
-        "default": "#FFFFFF"
+        "type": "header",
+        "content": "Primary surfaces and text"
       },
       {
         "type": "color",
         "id": "background_color",
-        "default": "#FFFFFF",
-        "label": "t:labels.background"
+        "default": "#050505",
+        "label": "Page background — Obsidian Black"
+      },
+      {
+        "type": "color",
+        "id": "secondary_color",
+        "default": "#151515",
+        "label": "Secondary surface — Carbon Black"
       },
       {
         "type": "color",
         "id": "foreground_color",
-        "default": "#333333",
-        "label": "t:labels.foreground"
+        "default": "#F3F0E8",
+        "label": "Primary text — Warm Ivory"
+      },
+      {
+        "type": "color",
+        "id": "maximum_contrast_color",
+        "default": "#FFFFFF",
+        "label": "Maximum contrast — Pure White"
+      },
+      {
+        "type": "header",
+        "content": "Supporting colors"
+      },
+      {
+        "type": "color",
+        "id": "border_color",
+        "default": "#C7CBD0",
+        "label": "Borders and icons — Chrome Silver"
+      },
+      {
+        "type": "color",
+        "id": "muted_color",
+        "default": "#777D82",
+        "label": "Muted text — Brushed Steel"
+      },
+      {
+        "type": "color",
+        "id": "neutral_color",
+        "default": "#8B8983",
+        "label": "Neutral details — Cement Gray"
+      },
+      {
+        "type": "color",
+        "id": "accent_color",
+        "default": "#C4A174",
+        "label": "Warm accent — Light Oak"
+      },
+      {
+        "type": "color",
+        "id": "highlight_color",
+        "default": "#D3A35A",
+        "label": "Active highlight — Warm Ambient Light"
+      },
+      {
+        "type": "header",
+        "content": "Primary actions"
+      },
+      {
+        "type": "color",
+        "id": "primary_color",
+        "default": "#F3F0E8",
+        "label": "Button background"
+      },
+      {
+        "type": "color",
+        "id": "button_text_color",
+        "default": "#050505",
+        "label": "Button text"
+      }
+    ]
+  },
+  {
+    "name": "Component styling",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Corner radii"
+      },
+      {
+        "type": "range",
+        "id": "button_corner_radius",
+        "min": 0,
+        "max": 6,
+        "step": 1,
+        "unit": "px",
+        "label": "Button corner radius",
+        "default": 4
       },
       {
         "type": "range",
         "id": "input_corner_radius",
         "min": 0,
-        "max": 10,
+        "max": 8,
         "step": 1,
         "unit": "px",
         "label": "t:labels.input_corner_radius",
         "default": 4
+      },
+      {
+        "type": "range",
+        "id": "card_corner_radius",
+        "min": 0,
+        "max": 8,
+        "step": 1,
+        "unit": "px",
+        "label": "Card corner radius",
+        "default": 4
+      },
+      {
+        "type": "range",
+        "id": "image_corner_radius",
+        "min": 0,
+        "max": 4,
+        "step": 1,
+        "unit": "px",
+        "label": "Image corner radius",
+        "default": 2
+      }
+    ]
+  },
+  {
+    "name": "Motion",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enable_reveal_animations",
+        "label": "Enable restrained reveal animations",
+        "info": "Animations must still respect the visitor's reduced-motion preference.",
+        "default": true
       }
     ]
   }
