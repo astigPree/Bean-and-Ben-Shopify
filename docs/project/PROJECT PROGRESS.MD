@@ -203,8 +203,53 @@ Theme Editor setup:
 6. Ensure each selected Shopify product has a featured image, description, current price, and correct availability.
 7. Optionally upload a **Background image**, then adjust its position and overlay strength for readable text.
 
+## Rooftop Carousel
+
+Status: Complete - connected below the Featured menu.
+
+Reference images:
+
+- `docs/screens/rooftop-section-phone.jpg`
+- `docs/screens/rooftop-section-pc.jpg`
+
+Implemented:
+
+- Built the warm-ivory mobile-first intro with editable eyebrow, multiline heading, description, and CTA.
+- Built the dark filmstrip carousel treatment with framed images, captions, slide numbering, and film perforation rails.
+- Added reorderable **Gallery image** blocks supporting an image, caption, alternative text, and image position.
+- Added automatic horizontal slide movement with an editable interval.
+- Added native swipe and trackpad scrolling, previous/next buttons, slide dots, and keyboard arrow controls.
+- Paused automatic movement while the carousel is hovered or keyboard-focused and while it is outside the viewport.
+- Disabled automatic movement for visitors who prefer reduced motion.
+- Added responsive mobile and desktop slide-width controls.
+- Reduced the default phone and desktop slide widths and removed the oversized fixed image heights so gallery images retain compact landscape proportions.
+- Reduced the film rails and caption heights to keep the entire carousel visually lighter.
+- Added three branded sample slides when no image blocks exist.
+- Added a branded placeholder when a gallery block exists without an uploaded image.
+- Used Flexbox for the intro, carousel track, slides, captions, controls, dots, and fallback layouts.
+- Added explanatory Liquid, CSS, and JavaScript comments in `sections/rooftop-carousel.liquid`.
+- Connected the section below the Featured menu in `templates/index.json`.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 45 theme files inspected with no offenses.
+- `templates/index.json`: valid JSON.
+- Rooftop carousel JavaScript: syntax check passed.
+- Rooftop carousel CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the home page and select **Rooftop carousel**.
+2. Add a **Gallery image** block for each venue image.
+3. Upload the image, add a short caption, and write useful alternative text.
+4. Reorder the blocks to change the carousel sequence.
+5. Adjust image position when an important subject is cropped.
+6. Set autoplay behavior, interval, and responsive slide widths.
+7. Assign the CTA link when the destination page is ready.
+
 ## Next Work
 
-- Review the navigation, hero, venue information strip, and featured menu using the developer-controlled Shopify preview.
+- Review the navigation, hero, venue information strip, featured menu, and rooftop carousel using the developer-controlled Shopify preview.
 - Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.

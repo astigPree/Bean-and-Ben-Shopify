@@ -75,11 +75,16 @@
     "featured_menu": {
       "type": "featured-menu",
       "settings": {}
+    },
+    "rooftop_carousel": {
+      "type": "rooftop-carousel",
+      "settings": {}
     }
   },
   "order": [
     "hero",
     "venue_info",
-    "featured_menu"
+    "featured_menu",
+    "rooftop_carousel"
   ]
 }

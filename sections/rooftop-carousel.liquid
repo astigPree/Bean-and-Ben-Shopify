@@ -1,0 +1,1003 @@
+{% liquid
+  assign rendered_slide_count = section.blocks.size
+
+  if rendered_slide_count == 0
+    assign rendered_slide_count = 3
+  endif
+
+  assign autoplay_interval = section.settings.autoplay_speed | times: 1000
+%}
+
+<section
+  class="rooftop-carousel full-width"
+  style="
+    --rooftop-background: {{ section.settings.background_color }};
+    --rooftop-text: {{ section.settings.text_color }};
+    --rooftop-accent: {{ section.settings.accent_color }};
+    --rooftop-film: {{ section.settings.film_color }};
+    --rooftop-mobile-slide-width: {{ section.settings.mobile_slide_width }}vw;
+    --rooftop-desktop-slide-width: {{ section.settings.desktop_slide_width }}vw;
+  "
+  aria-label="{{ section.settings.accessibility_label | escape }}"
+  data-rooftop-carousel
+  data-autoplay="{{ section.settings.autoplay }}"
+  data-autoplay-interval="{{ autoplay_interval }}"
+>
+  <div class="rooftop-carousel__intro">
+    {% if section.settings.eyebrow != blank %}
+      <div class="rooftop-carousel__eyebrow-row">
+        <p class="rooftop-carousel__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+        <span aria-hidden="true"></span>
+      </div>
+    {% endif %}
+
+    <div class="rooftop-carousel__intro-content">
+      {% if section.settings.heading != blank %}
+        <h2 class="rooftop-carousel__heading">
+          {{ section.settings.heading | escape | newline_to_br }}
+        </h2>
+      {% endif %}
+
+      {% if section.settings.description != blank %}
+        <p class="rooftop-carousel__description">{{ section.settings.description | escape }}</p>
+      {% endif %}
+
+      {% if section.settings.button_label != blank %}
+        {% if section.settings.button_link != blank %}
+          <a class="rooftop-carousel__button" href="{{ section.settings.button_link }}">
+            <span>{{ section.settings.button_label | escape }}</span>
+            <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+              <path d="M1 10h28M21 2l8 8-8 8"></path>
+            </svg>
+          </a>
+        {% else %}
+          {% comment %}
+            The CTA remains visible for design review but cannot redirect
+            until the merchant selects a destination in the Theme Editor.
+          {% endcomment %}
+          <button class="rooftop-carousel__button" type="button" disabled>
+            <span>{{ section.settings.button_label | escape }}</span>
+            <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+              <path d="M1 10h28M21 2l8 8-8 8"></path>
+            </svg>
+          </button>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+
+  {% comment %}
+    The viewport keeps native horizontal scrolling for touch, trackpads,
+    keyboards, and a useful non-JavaScript fallback.
+  {% endcomment %}
+  <div class="rooftop-carousel__film">
+    <div class="rooftop-carousel__film-rail" aria-hidden="true"></div>
+
+    <div
+      class="rooftop-carousel__viewport"
+      tabindex="0"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Rooftop gallery"
+      data-carousel-viewport
+    >
+      <div class="rooftop-carousel__track" data-carousel-track>
+        {% if section.blocks.size > 0 %}
+          {% for block in section.blocks %}
+            {% liquid
+              assign slide_alt = block.settings.alt_text
+
+              if slide_alt == blank
+                assign slide_alt = block.settings.image.alt
+              endif
+
+              if slide_alt == blank
+                assign slide_alt = block.settings.caption
+              endif
+            %}
+
+            <article
+              class="rooftop-carousel__slide{% if block.settings.image == blank %} rooftop-carousel__slide--placeholder{% endif %}"
+              style="--rooftop-image-position: {{ block.settings.image_position }};"
+              data-carousel-slide
+              {{ block.shopify_attributes }}
+            >
+              <div class="rooftop-carousel__media">
+                {% if block.settings.image != blank %}
+                  {{
+                    block.settings.image
+                    | image_url: width: 1800
+                    | image_tag:
+                      widths: '400, 600, 800, 1100, 1400, 1800',
+                      sizes: '(min-width: 990px) var(--rooftop-desktop-slide-width), var(--rooftop-mobile-slide-width)',
+                      class: 'rooftop-carousel__image',
+                      loading: 'lazy',
+                      alt: slide_alt
+                  }}
+                {% else %}
+                  {% comment %}
+                    An empty image block uses the same branded sample treatment
+                    as the completely empty carousel, so the layout never breaks.
+                  {% endcomment %}
+                  <div class="rooftop-carousel__sample">
+                    <span>{% if forloop.index < 10 %}0{% endif %}{{ forloop.index }}</span>
+                    {% if request.design_mode %}
+                      <small>Add an image</small>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="rooftop-carousel__caption">
+                <p>{{ block.settings.caption | default: 'Rooftop moment' | escape }}</p>
+                <span>{% if forloop.index < 10 %}0{% endif %}{{ forloop.index }}</span>
+              </div>
+            </article>
+          {% endfor %}
+        {% else %}
+          {% comment %}
+            Three sample slides are rendered when no blocks exist. They contain
+            no fake photos and disappear as soon as the first image block is added.
+          {% endcomment %}
+          {% for sample_index in (1..3) %}
+            {% case sample_index %}
+              {% when 1 %}
+                {% assign sample_caption = 'Coffee bar' %}
+              {% when 2 %}
+                {% assign sample_caption = 'Evening rooftop' %}
+              {% else %}
+                {% assign sample_caption = 'Dine together' %}
+            {% endcase %}
+
+            <article class="rooftop-carousel__slide rooftop-carousel__slide--placeholder" data-carousel-slide>
+              <div class="rooftop-carousel__media">
+                <div class="rooftop-carousel__sample">
+                  <span>0{{ sample_index }}</span>
+                  {% if request.design_mode %}
+                    <small>Add gallery images</small>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="rooftop-carousel__caption">
+                <p>{{ sample_caption }}</p>
+                <span>0{{ sample_index }}</span>
+              </div>
+            </article>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rooftop-carousel__film-rail rooftop-carousel__film-rail--bottom" aria-hidden="true"></div>
+  </div>
+
+  <div class="rooftop-carousel__controls">
+    <button class="rooftop-carousel__arrow" type="button" aria-label="Previous slide" data-carousel-previous>
+      <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+        <path d="M31 10H3M11 2l-8 8 8 8"></path>
+      </svg>
+    </button>
+
+    <div class="rooftop-carousel__dots" aria-label="Choose a slide">
+      {% for dot_index in (1..rendered_slide_count) %}
+        <button
+          class="rooftop-carousel__dot{% if forloop.first %} is-active{% endif %}"
+          type="button"
+          aria-label="Go to slide {{ dot_index }}"
+          {% if forloop.first %}
+            aria-current="true"
+          {% endif %}
+          data-carousel-dot="{{ forloop.index0 }}"
+        ></button>
+      {% endfor %}
+    </div>
+
+    <button class="rooftop-carousel__arrow" type="button" aria-label="Next slide" data-carousel-next>
+      <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+        <path d="M1 10h28M21 2l8 8-8 8"></path>
+      </svg>
+    </button>
+  </div>
+
+  <p class="rooftop-carousel__swipe-hint">
+    <svg viewBox="0 0 42 30" fill="none" aria-hidden="true">
+      <path d="M4 8 1 11l3 3M38 8l3 3-3 3M2 11h38"></path>
+      <path d="M18 28c-3-3-5-6-5-10v-7a2 2 0 0 1 4 0v5-9a2 2 0 0 1 4 0v9-7a2 2 0 0 1 4 0v8-5a2 2 0 0 1 4 0v7c0 4-2 7-5 9"></path>
+    </svg>
+    <span>{{ section.settings.swipe_label | escape }}</span>
+  </p>
+</section>
+
+{% stylesheet %}
+  /* Mobile-first intro follows the warm editorial layout in the phone reference. */
+  .rooftop-carousel {
+    overflow: hidden;
+    color: var(--rooftop-text, #050505);
+    background: var(--rooftop-background, #f3f0e8);
+  }
+
+  .rooftop-carousel__intro {
+    display: flex;
+    width: min(100%, var(--page-width, 90rem));
+    flex-direction: column;
+    gap: clamp(3.5rem, 12vw, 5.5rem);
+    margin-inline: auto;
+    padding:
+      var(--mobile-section-spacing, 4.5rem)
+      var(--page-margin, 1.25rem)
+      clamp(4rem, 14vw, 6rem);
+  }
+
+  .rooftop-carousel__eyebrow-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .rooftop-carousel__eyebrow {
+    flex: 0 0 auto;
+    margin: 0;
+    color: var(--rooftop-accent, #d3a35a);
+    font-size: clamp(0.8rem, 3.8vw, 1rem);
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .rooftop-carousel__eyebrow-row > span {
+    display: block;
+    height: 1px;
+    flex: 1 1 auto;
+    background: var(--rooftop-accent, #d3a35a);
+  }
+
+  .rooftop-carousel__intro-content {
+    display: flex;
+    max-width: 58rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rooftop-carousel__heading {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(3.6rem, 15vw, 5.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.005em;
+    line-height: 0.9;
+    text-transform: uppercase;
+  }
+
+  .rooftop-carousel__description {
+    max-width: 38rem;
+    margin: 2rem 0 0;
+    font-size: clamp(1.05rem, 4.8vw, 1.35rem);
+    line-height: 1.65;
+  }
+
+  .rooftop-carousel__button {
+    display: inline-flex;
+    width: min(100%, 26rem);
+    min-height: 4.25rem;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-block-start: 2.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--rooftop-accent, #d3a35a);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    color: #fff;
+    font-family: inherit;
+    font-size: clamp(0.8rem, 3.5vw, 1rem);
+    font-weight: 650;
+    letter-spacing: 0.18em;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    background: var(--rooftop-accent, #d3a35a);
+    cursor: pointer;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .rooftop-carousel__button:disabled {
+    opacity: 1;
+    cursor: default;
+  }
+
+  .rooftop-carousel__button svg {
+    width: 2rem;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.5;
+  }
+
+  /* Film frame stays decorative; the slide track itself is a Flexbox row. */
+  .rooftop-carousel__film {
+    color: #f3f0e8;
+    background: var(--rooftop-film, #15110d);
+  }
+
+  .rooftop-carousel__film-rail {
+    height: 3.25rem;
+    border-block: 1px solid color-mix(in srgb, var(--rooftop-accent, #d3a35a) 45%, transparent);
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 0.85rem,
+        rgb(211 163 90 / 24%) 0.85rem 2.1rem,
+        transparent 2.1rem 2.75rem
+      ),
+      linear-gradient(180deg, #0c0a08, var(--rooftop-film, #15110d));
+  }
+
+  .rooftop-carousel__film-rail--bottom {
+    transform: scaleY(-1);
+  }
+
+  .rooftop-carousel__viewport {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .rooftop-carousel__viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rooftop-carousel__viewport:focus-visible {
+    outline: 2px solid var(--rooftop-accent, #d3a35a);
+    outline-offset: -2px;
+  }
+
+  .rooftop-carousel__track {
+    display: flex;
+    width: max-content;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-inline: var(--page-margin, 1.25rem);
+  }
+
+  .rooftop-carousel__slide {
+    display: flex;
+    width: var(--rooftop-mobile-slide-width, 80vw);
+    flex: 0 0 var(--rooftop-mobile-slide-width, 80vw);
+    flex-direction: column;
+    overflow: hidden;
+    border-inline: 1px solid color-mix(in srgb, var(--rooftop-accent, #d3a35a) 58%, transparent);
+    background: #0d0c0a;
+    scroll-snap-align: center;
+  }
+
+  .rooftop-carousel__media {
+    display: flex;
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #0d0c0a;
+  }
+
+  .rooftop-carousel__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--rooftop-image-position, center center);
+    transition: transform 400ms ease;
+  }
+
+  .rooftop-carousel__caption {
+    display: flex;
+    min-height: 5.25rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-block-start: 2px solid var(--rooftop-accent, #d3a35a);
+    color: #f3f0e8;
+  }
+
+  .rooftop-carousel__caption p {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(1.8rem, 8vw, 2.75rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .rooftop-carousel__caption > span {
+    color: var(--rooftop-accent, #d3a35a);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+  }
+
+  /* Branded sample treatment used when the merchant has not added images yet. */
+  .rooftop-carousel__sample {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    overflow: hidden;
+    color: var(--rooftop-accent, #d3a35a);
+    background:
+      radial-gradient(circle at 70% 25%, rgb(211 163 90 / 20%), transparent 22%),
+      linear-gradient(135deg, #0c0a08, #242019 55%, #0c0a08);
+  }
+
+  .rooftop-carousel__sample::before,
+  .rooftop-carousel__sample::after {
+    position: absolute;
+    width: 70%;
+    height: 1px;
+    content: '';
+    background: color-mix(in srgb, var(--rooftop-accent, #d3a35a) 48%, transparent);
+    transform: rotate(-24deg);
+  }
+
+  .rooftop-carousel__sample::after {
+    transform: rotate(24deg);
+  }
+
+  .rooftop-carousel__sample span,
+  .rooftop-carousel__sample small {
+    position: relative;
+    z-index: 1;
+  }
+
+  .rooftop-carousel__sample span {
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(5rem, 24vw, 9rem);
+    line-height: 1;
+  }
+
+  .rooftop-carousel__sample small {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid currentColor;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    background: #0c0a08;
+  }
+
+  .rooftop-carousel__controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1.25rem, 6vw, 2.5rem);
+    padding: 2.5rem var(--page-margin, 1.25rem) 0;
+  }
+
+  .rooftop-carousel__arrow,
+  .rooftop-carousel__dot {
+    border: 0;
+    color: var(--rooftop-accent, #d3a35a);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .rooftop-carousel__arrow {
+    display: inline-flex;
+    width: 3rem;
+    height: 3rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rooftop-carousel__arrow svg {
+    width: 2rem;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.5;
+  }
+
+  .rooftop-carousel__dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .rooftop-carousel__dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    padding: 0;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--rooftop-accent, #d3a35a) 28%, transparent);
+  }
+
+  .rooftop-carousel__dot.is-active {
+    background: var(--rooftop-accent, #d3a35a);
+    box-shadow: 0 0 0 2px var(--rooftop-background, #f3f0e8), 0 0 0 3px var(--rooftop-accent, #d3a35a);
+  }
+
+  .rooftop-carousel__swipe-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    margin: 1.5rem var(--page-margin, 1.25rem) 0;
+    padding: 0 0 var(--mobile-section-spacing, 4.5rem);
+    color: var(--rooftop-accent, #d3a35a);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.3;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .rooftop-carousel__swipe-hint svg {
+    width: 2.5rem;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  @media (hover: hover) {
+    .rooftop-carousel__button:not(:disabled):hover {
+      color: var(--rooftop-accent, #d3a35a);
+      background: transparent;
+    }
+
+    .rooftop-carousel__slide:hover .rooftop-carousel__image {
+      transform: scale(1.025);
+    }
+
+    .rooftop-carousel__arrow:hover {
+      color: var(--rooftop-text, #050505);
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .rooftop-carousel__intro {
+      align-items: center;
+      gap: 3rem;
+      padding:
+        var(--desktop-section-spacing, 8.75rem)
+        var(--desktop-page-margin, 4rem)
+        clamp(5rem, 7vw, 7rem);
+    }
+
+    .rooftop-carousel__eyebrow-row {
+      width: 100%;
+    }
+
+    .rooftop-carousel__intro-content {
+      align-items: center;
+      text-align: center;
+    }
+
+    .rooftop-carousel__heading {
+      font-size: clamp(5rem, 7vw, 8rem);
+      line-height: 0.88;
+    }
+
+    .rooftop-carousel__description {
+      font-size: 1.2rem;
+    }
+
+    .rooftop-carousel__button {
+      width: min(100%, 28rem);
+      min-height: 5rem;
+    }
+
+    .rooftop-carousel__film-rail {
+      height: 3.75rem;
+    }
+
+    .rooftop-carousel__track {
+      gap: 0.9rem;
+      padding-inline: var(--desktop-page-margin, 4rem);
+    }
+
+    .rooftop-carousel__slide {
+      width: var(--rooftop-desktop-slide-width, 30vw);
+      flex-basis: var(--rooftop-desktop-slide-width, 30vw);
+    }
+
+    .rooftop-carousel__media {
+      min-height: 0;
+      aspect-ratio: 5 / 4;
+    }
+
+    .rooftop-carousel__caption {
+      min-height: 5.75rem;
+      padding-inline: 1.75rem;
+    }
+
+    .rooftop-carousel__caption p {
+      font-size: clamp(2rem, 2.6vw, 3.25rem);
+    }
+
+    .rooftop-carousel__controls {
+      padding-block-start: 3rem;
+    }
+
+    .rooftop-carousel__swipe-hint {
+      padding-block-end: var(--desktop-section-spacing, 8.75rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rooftop-carousel__viewport {
+      scroll-behavior: auto;
+    }
+
+    .rooftop-carousel__button,
+    .rooftop-carousel__image {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  const initializeRooftopCarousels = (root = document) => {
+    root.querySelectorAll('[data-rooftop-carousel]:not([data-carousel-ready])').forEach((carousel) => {
+      carousel.setAttribute('data-carousel-ready', '');
+
+      const viewport = carousel.querySelector('[data-carousel-viewport]');
+      const slides = Array.from(carousel.querySelectorAll('[data-carousel-slide]'));
+      const dots = Array.from(carousel.querySelectorAll('[data-carousel-dot]'));
+      const previousButton = carousel.querySelector('[data-carousel-previous]');
+      const nextButton = carousel.querySelector('[data-carousel-next]');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const autoplayEnabled = carousel.dataset.autoplay === 'true';
+      const autoplayInterval = Number(carousel.dataset.autoplayInterval) || 5000;
+
+      if (!viewport || slides.length === 0) return;
+
+      let activeIndex = 0;
+      let autoplayTimer;
+      let interactionPaused = false;
+      let carouselVisible = true;
+      let scrollFrame;
+
+      const updateActiveSlide = (nextIndex) => {
+        activeIndex = nextIndex;
+
+        dots.forEach((dot, dotIndex) => {
+          const isActive = dotIndex === activeIndex;
+          dot.classList.toggle('is-active', isActive);
+
+          if (isActive) {
+            dot.setAttribute('aria-current', 'true');
+          } else {
+            dot.removeAttribute('aria-current');
+          }
+        });
+      };
+
+      const findNearestSlide = () => {
+        const viewportCenter = viewport.scrollLeft + viewport.clientWidth / 2;
+        let nearestIndex = 0;
+        let nearestDistance = Number.POSITIVE_INFINITY;
+
+        slides.forEach((slide, slideIndex) => {
+          const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+          const distance = Math.abs(viewportCenter - slideCenter);
+
+          if (distance < nearestDistance) {
+            nearestDistance = distance;
+            nearestIndex = slideIndex;
+          }
+        });
+
+        updateActiveSlide(nearestIndex);
+      };
+
+      const moveToSlide = (requestedIndex, behavior = 'smooth') => {
+        const nextIndex = (requestedIndex + slides.length) % slides.length;
+        const slide = slides[nextIndex];
+        const centeredPosition = slide.offsetLeft - (viewport.clientWidth - slide.offsetWidth) / 2;
+
+        viewport.scrollTo({
+          left: Math.max(0, centeredPosition),
+          behavior: reducedMotion.matches ? 'auto' : behavior,
+        });
+
+        updateActiveSlide(nextIndex);
+      };
+
+      const stopAutoplay = () => {
+        window.clearInterval(autoplayTimer);
+        autoplayTimer = undefined;
+      };
+
+      const startAutoplay = () => {
+        stopAutoplay();
+
+        if (!autoplayEnabled || reducedMotion.matches || interactionPaused || !carouselVisible || slides.length < 2) {
+          return;
+        }
+
+        autoplayTimer = window.setInterval(() => {
+          moveToSlide(activeIndex + 1);
+        }, autoplayInterval);
+      };
+
+      const pauseInteraction = () => {
+        interactionPaused = true;
+        stopAutoplay();
+      };
+
+      const resumeInteraction = () => {
+        interactionPaused = false;
+        startAutoplay();
+      };
+
+      previousButton?.addEventListener('click', () => {
+        moveToSlide(activeIndex - 1);
+        startAutoplay();
+      });
+
+      nextButton?.addEventListener('click', () => {
+        moveToSlide(activeIndex + 1);
+        startAutoplay();
+      });
+
+      dots.forEach((dot, dotIndex) => {
+        dot.addEventListener('click', () => {
+          moveToSlide(dotIndex);
+          startAutoplay();
+        });
+      });
+
+      viewport.addEventListener('keydown', (event) => {
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          moveToSlide(activeIndex - 1);
+        }
+
+        if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          moveToSlide(activeIndex + 1);
+        }
+      });
+
+      viewport.addEventListener('scroll', () => {
+        window.cancelAnimationFrame(scrollFrame);
+        scrollFrame = window.requestAnimationFrame(findNearestSlide);
+      }, { passive: true });
+
+      carousel.addEventListener('pointerenter', pauseInteraction);
+      carousel.addEventListener('pointerleave', resumeInteraction);
+      viewport.addEventListener('pointerdown', pauseInteraction);
+      viewport.addEventListener('pointerup', resumeInteraction);
+      viewport.addEventListener('pointercancel', resumeInteraction);
+      carousel.addEventListener('focusin', pauseInteraction);
+      carousel.addEventListener('focusout', () => {
+        window.setTimeout(() => {
+          if (!carousel.contains(document.activeElement)) resumeInteraction();
+        });
+      });
+
+      reducedMotion.addEventListener('change', startAutoplay);
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          carouselVisible = entries[0]?.isIntersecting ?? true;
+
+          if (carouselVisible) {
+            startAutoplay();
+          } else {
+            stopAutoplay();
+          }
+        }, { threshold: 0.15 });
+
+        observer.observe(carousel);
+      }
+
+      updateActiveSlide(0);
+      startAutoplay();
+    });
+  };
+
+  initializeRooftopCarousels();
+
+  document.addEventListener('shopify:section:load', (event) => {
+    initializeRooftopCarousels(event.target);
+  });
+{% endjavascript %}
+
+{% schema %}
+{
+  "name": "Rooftop carousel",
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "text",
+      "id": "accessibility_label",
+      "label": "Accessibility label",
+      "default": "Rooftop atmosphere"
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "ROOFTOP LIVING"
+    },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "Heading",
+      "default": "DISCOVER THE\nBEAN & BEN\nATMOSPHERE"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Description",
+      "default": "Coffee, work, food and play—together above the city."
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Discover our space"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link",
+      "info": "When empty, the button stays visible without redirecting."
+    },
+    {
+      "type": "header",
+      "content": "Carousel"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Automatically move slides",
+      "default": true,
+      "info": "Automatically disabled for visitors who prefer reduced motion."
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "label": "Seconds between slides",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "mobile_slide_width",
+      "min": 60,
+      "max": 90,
+      "step": 5,
+      "unit": "vw",
+      "label": "Mobile slide width",
+      "default": 80
+    },
+    {
+      "type": "range",
+      "id": "desktop_slide_width",
+      "min": 20,
+      "max": 42,
+      "step": 2,
+      "unit": "vw",
+      "label": "Desktop slide width",
+      "default": 30
+    },
+    {
+      "type": "text",
+      "id": "swipe_label",
+      "label": "Swipe hint",
+      "default": "Swipe to explore"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#F3F0E8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#050505"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent",
+      "default": "#D3A35A"
+    },
+    {
+      "type": "color",
+      "id": "film_color",
+      "label": "Film frame",
+      "default": "#15110D"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "image",
+      "name": "Gallery image",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Caption",
+          "default": "Rooftop moment"
+        },
+        {
+          "type": "text",
+          "id": "alt_text",
+          "label": "Alternative text",
+          "info": "Describe the meaningful content of the image for screen-reader users."
+        },
+        {
+          "type": "select",
+          "id": "image_position",
+          "label": "Image position",
+          "options": [
+            {
+              "value": "center center",
+              "label": "Center"
+            },
+            {
+              "value": "center top",
+              "label": "Top"
+            },
+            {
+              "value": "center bottom",
+              "label": "Bottom"
+            },
+            {
+              "value": "left center",
+              "label": "Left"
+            },
+            {
+              "value": "right center",
+              "label": "Right"
+            }
+          ],
+          "default": "center center"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Rooftop carousel"
+    }
+  ]
+}
+{% endschema %}
