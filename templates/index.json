@@ -79,12 +79,17 @@
     "rooftop_carousel": {
       "type": "rooftop-carousel",
       "settings": {}
+    },
+    "visit_bean_ben": {
+      "type": "visit-bean-ben",
+      "settings": {}
     }
   },
   "order": [
     "hero",
     "venue_info",
     "featured_menu",
-    "rooftop_carousel"
+    "rooftop_carousel",
+    "visit_bean_ben"
   ]
 }

@@ -251,8 +251,49 @@ Theme Editor setup:
 6. Set autoplay behavior, interval, and responsive slide widths.
 7. Assign the CTA link when the destination page is ready.
 
+## Visit Bean & Ben
+
+Status: Complete - connected below the Rooftop carousel.
+
+Reference images:
+
+- `docs/screens/direction-section-phone.jpg`
+- `docs/screens/direction-section-pc.jpg`
+
+Implemented:
+
+- Built the bordered black venue panel mobile-first from the supplied phone reference.
+- Built the desktop Flexbox composition with venue information on the left and the uploaded map filling the right side.
+- Added editable heading, address, opening hours, parking information, and nearby landmark settings.
+- Added inline location, clock, parking, map, and message SVG icons without external icon dependencies.
+- Added editable **Get directions** and **Message us** action labels and links.
+- Kept actions visible but safely disabled when their links have not been assigned.
+- Added an optional setting to open the directions link in a new browser tab.
+- Added an uploadable map image, alternative text, and image-position control in the Theme Editor.
+- Added a branded map-style fallback so the section remains complete before a map image is uploaded.
+- Added editable section, panel, text, border, and primary-button colors.
+- Added explanatory Liquid and CSS comments throughout `sections/visit-bean-ben.liquid`.
+- Used Flexbox for the panel, venue facts, actions, map fallback, and responsive desktop composition.
+- Connected the section after the Rooftop carousel in `templates/index.json`.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 46 theme files inspected with no offenses.
+- `templates/index.json`: valid JSON.
+- Visit Bean & Ben CSS: no CSS Grid layout used.
+
+Theme Editor setup:
+
+1. Open the home page and select **Visit Bean & Ben**.
+2. Confirm the address, operating hours, parking details, and nearby landmark.
+3. Add the Google Maps or other approved destination URL to **Directions link**.
+4. Add the approved Messenger, contact page, or other channel to **Message link**.
+5. Upload the approved map under **Map image**.
+6. Add meaningful map alternative text and adjust **Map image position** if the marker is cropped.
+
 ## Next Work
 
-- Review the navigation, hero, venue information strip, featured menu, and rooftop carousel using the developer-controlled Shopify preview.
+- Review the navigation, hero, venue information strip, featured menu, rooftop carousel, and Visit Bean & Ben section using the developer-controlled Shopify preview.
 - Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.
