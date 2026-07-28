@@ -1,17 +1,33 @@
+{% comment %}
+  COLLECTION DATA SETUP
+  Shopify automatically provides the `collection` object on collection pages.
+  It contains the current collection's title, description, products, sorting
+  options, and URLs. Section settings come from the Theme Editor schema below.
+{% endcomment %}
 {% liquid
   assign catalog_heading = section.settings.heading
   assign current_sort = collection.sort_by | default: collection.default_sort_by
 
+  # Use the live Shopify collection title when no heading override is entered.
   if catalog_heading == blank
     assign catalog_heading = collection.title
   endif
 %}
 
+{% comment %}
+  `section.id` makes the heading ID unique if this section is used more than
+  once. `aria-labelledby` connects that heading to the complete catalog region.
+{% endcomment %}
 <section
   class="catalog-page full-width"
   aria-labelledby="CatalogHeading-{{ section.id }}"
 >
   <div class="catalog-page__inner">
+    {% comment %}
+      CATALOG INTRODUCTION
+      The eyebrow and heading override are editable in the Theme Editor.
+      The description and product count come from the current collection.
+    {% endcomment %}
     <header class="catalog-page__hero">
       <div class="catalog-page__hero-copy">
         {% if section.settings.eyebrow != blank %}
@@ -24,6 +40,10 @@
       </div>
 
       <div class="catalog-page__hero-support">
+        {% comment %}
+          Collection descriptions are managed in Shopify Admin and may contain
+          rich text, so the container uses the shared `rte` class.
+        {% endcomment %}
         {% if section.settings.show_collection_description %}
           {% if collection.description != blank %}
             <div class="catalog-page__description rte">
@@ -68,6 +88,10 @@
       {% endfor %}
     </nav>
 
+    {% comment %}
+      The toolbar confirms which collection is open and provides Shopify's
+      built-in sorting choices when more than one choice is available.
+    {% endcomment %}
     <div class="catalog-page__toolbar">
       <p>{{ 'catalog.showing_collection' | t: title: collection.title }}</p>
 
@@ -95,10 +119,19 @@
       {% endif %}
     </div>
 
+    {% comment %}
+      PAGINATED PRODUCT LIST
+      Shopify limits large Liquid loops, so `paginate` divides the collection
+      into the number of products selected in the Theme Editor.
+    {% endcomment %}
     {% paginate collection.products by section.settings.products_per_page %}
       {% if collection.products_count > 0 %}
         <ul class="catalog-page__products" role="list">
           {% for product in collection.products %}
+            {% comment %}
+              Each product is delegated to the reusable menu-product-card
+              snippet. These arguments decide which optional details it shows.
+            {% endcomment %}
             {% render 'menu-product-card',
               product: product,
               show_description: section.settings.show_description,
@@ -110,6 +143,10 @@
           {% endfor %}
         </ul>
       {% else %}
+        {% comment %}
+          Keep empty collections visually complete. The extra instruction is
+          visible only inside the Theme Editor, never to storefront visitors.
+        {% endcomment %}
         <div class="catalog-page__empty">
           <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
             <path d="M23 33h46l-4 45H28l-5-45Z"></path>
@@ -124,6 +161,10 @@
         </div>
       {% endif %}
 
+      {% comment %}
+        Pagination is rendered only when the collection needs multiple pages.
+        Shopify supplies previous, next, current, and numbered page URLs.
+      {% endcomment %}
       {% if paginate.pages > 1 %}
         <nav class="catalog-page__pagination" aria-label="{{ 'catalog.pagination' | t }}">
           {% if paginate.previous %}
@@ -171,6 +212,10 @@
       var(--color-background, #050505);
   }
 
+  /*
+   * CONTENT WIDTH
+   * Centers the catalog and reuses the global page-width and spacing settings.
+   */
   .catalog-page__inner {
     display: flex;
     width: min(100%, var(--page-width, 90rem));
@@ -289,6 +334,11 @@
     background: var(--color-action, #f3f0e8);
   }
 
+  /*
+   * SORTING TOOLBAR
+   * The controls stack on small phones. A later breakpoint places them in one
+   * row when enough horizontal space is available.
+   */
   .catalog-page__toolbar {
     display: flex;
     flex-direction: column;
@@ -354,6 +404,11 @@
     text-transform: uppercase;
   }
 
+  /*
+   * PRODUCT GRID
+   * Flexbox starts with one card per row. Tablet and desktop breakpoints below
+   * change the cards to two and then three columns.
+   */
   .catalog-page__products {
     display: flex;
     flex-wrap: wrap;
@@ -370,6 +425,11 @@
     flex: 1 1 100%;
   }
 
+  /*
+   * PRODUCT CARD
+   * These selectors style HTML rendered by snippets/menu-product-card.liquid.
+   * Keeping the reusable card markup in a snippet avoids duplicating it.
+   */
   .menu-product-card__article {
     display: flex;
     width: 100%;
@@ -554,6 +614,7 @@
     filter: grayscale(0.7);
   }
 
+  /* Empty-state styles prevent collections without products from looking broken. */
   .catalog-page__empty {
     display: flex;
     min-height: 26rem;
@@ -598,6 +659,7 @@
     color: var(--color-highlight, #d3a35a);
   }
 
+  /* Pagination links are sized as comfortable touch targets on mobile devices. */
   .catalog-page__pagination,
   .catalog-page__pagination-pages {
     display: flex;
@@ -665,6 +727,7 @@
     }
   }
 
+  /* Two product cards per row on larger phones and tablets. */
   @media screen and (min-width: 620px) {
     .catalog-page__toolbar {
       flex-direction: row;
@@ -686,6 +749,11 @@
     }
   }
 
+  /*
+   * DESKTOP LAYOUT
+   * The hero becomes a split row, categories can wrap, and the catalog shows
+   * three product cards per row.
+   */
   @media screen and (min-width: 990px) {
     .catalog-page__inner {
       gap: 2.5rem;
@@ -744,6 +812,7 @@
     }
   }
 
+  /* Respect visitors who request reduced interface motion. */
   @media (prefers-reduced-motion: reduce) {
     .catalog-page__category,
     .menu-product-card__image {
@@ -752,6 +821,11 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  This JSON schema creates the collection section's controls in Shopify's Theme
+  Editor. It must stay valid JSON, so explanatory comments cannot go inside it.
+{% endcomment %}
 {% schema %}
 {
   "name": "Product catalog",
