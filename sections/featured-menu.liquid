@@ -1,6 +1,13 @@
+{% comment %}
+  FEATURED MENU DATA SETUP
+  Products can come from a manually ordered product list or a fallback Shopify
+  collection. All product names, images, descriptions, prices, and availability
+  remain connected to Shopify product data.
+{% endcomment %}
 {% liquid
   assign featured_products = section.settings.products
 
+  # The manually selected list has priority over the fallback collection.
   if featured_products == blank
     if section.settings.collection != blank
       assign featured_products = section.settings.collection.products
@@ -11,6 +18,7 @@
   assign menu_link = section.settings.menu_link
   assign background_overlay_opacity = section.settings.background_overlay_opacity | divided_by: 100.0
 
+  # Link priority: custom menu URL, selected collection, then All products.
   if menu_link == blank
     if section.settings.collection != blank
       assign menu_link = section.settings.collection.url
@@ -20,6 +28,10 @@
   endif
 %}
 
+{% comment %}
+  Theme Editor color, image-position, and overlay values are passed to CSS
+  custom properties so they affect only this section instance.
+{% endcomment %}
 <section
   class="featured-menu full-width"
   style="
@@ -69,6 +81,8 @@
     {% comment %}
       Products are sourced only from Shopify. The manually selected product
       list is preferred; the selected collection is used when that list is empty.
+      The first product uses the large lead-card style; products two through five
+      use the supporting-card style from the same reusable snippet.
     {% endcomment %}
     {% if featured_product_count > 0 %}
       <div class="featured-menu__products">
@@ -113,6 +127,10 @@
       </div>
     {% endif %}
 
+    {% comment %}
+      The footer destination was resolved during data setup, so this link remains
+      useful even when the merchant leaves the custom Menu link setting empty.
+    {% endcomment %}
     {% if section.settings.menu_label != blank %}
       <div class="featured-menu__footer">
         <span class="featured-menu__footer-rule" aria-hidden="true"></span>
@@ -140,6 +158,7 @@
     isolation: isolate;
   }
 
+  /* The optional uploaded background and its readability overlay stay behind all content. */
   .featured-menu__background,
   .featured-menu__background-overlay {
     position: absolute;
@@ -167,6 +186,7 @@
     opacity: var(--featured-menu-background-overlay, 0.65);
   }
 
+  /* Constrains and centers the section content using mobile-first global spacing. */
   .featured-menu__inner {
     position: relative;
     z-index: 1;
@@ -242,6 +262,10 @@
     gap: 0.75rem;
   }
 
+  /*
+   * Card markup is rendered by snippets/featured-menu-card.liquid. The snippet
+   * supplies Shopify product data; these classes control its two visual styles.
+   */
   .featured-menu__card {
     position: relative;
     min-width: 0;
@@ -564,6 +588,7 @@
     }
   }
 
+  /* Larger phones keep two supporting products on each row with taller cards. */
   @media screen and (min-width: 600px) {
     .featured-menu__card--supporting {
       width: calc(50% - 0.5rem);
@@ -579,6 +604,10 @@
     }
   }
 
+  /*
+   * DESKTOP LAYOUT
+   * Places the lead card beside a wrapping two-by-two supporting-card group.
+   */
   @media screen and (min-width: 990px) {
     .featured-menu__inner {
       gap: 3rem;
@@ -679,6 +708,7 @@
     }
   }
 
+  /* Disable decorative transitions when the visitor requests reduced motion. */
   @media (prefers-reduced-motion: reduce) {
     .featured-menu__image,
     .featured-menu__menu-link {
@@ -687,6 +717,11 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  The strict JSON schema defines content, product sources, fallback messaging,
+  background controls, and colors. Comments cannot be inserted inside its JSON.
+{% endcomment %}
 {% schema %}
 {
   "name": "Featured menu",

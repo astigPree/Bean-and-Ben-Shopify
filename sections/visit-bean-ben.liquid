@@ -1,11 +1,21 @@
+{% comment %}
+  VISIT SECTION DATA SETUP
+  Use merchant-provided map alternative text when available, with a safe
+  descriptive fallback for screen-reader users.
+{% endcomment %}
 {% liquid
   assign map_alt = section.settings.map_alt
 
+  # Avoid rendering an uploaded map with empty alternative text.
   if map_alt == blank
     assign map_alt = 'Map showing the location of Bean & Ben'
   endif
 %}
 
+{% comment %}
+  Theme Editor colors and map crop position become CSS custom properties scoped
+  to this section instance. The heading ID provides the section's accessible name.
+{% endcomment %}
 <section
   class="visit-bean-ben full-width"
   style="
@@ -132,6 +142,10 @@
 
     <div class="visit-bean-ben__map">
       {% if section.settings.map_image != blank %}
+        {% comment %}
+          Shopify generates responsive image widths. The browser selects an
+          appropriate file while CSS uses the editable map crop position.
+        {% endcomment %}
         {{
           section.settings.map_image
           | image_url: width: 2400
@@ -195,6 +209,7 @@
     background: var(--visit-surface, #050505);
   }
 
+  /* Phone layout places editable venue facts and actions above the map. */
   .visit-bean-ben__content {
     display: flex;
     flex-direction: column;
@@ -460,6 +475,7 @@
     }
   }
 
+  /* Remove button transitions when the visitor requests reduced motion. */
   @media (prefers-reduced-motion: reduce) {
     .visit-bean-ben__button {
       transition: none;
@@ -467,6 +483,11 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  The strict JSON schema defines verified venue facts, action URLs, map upload
+  and crop controls, fallback content, and section colors.
+{% endcomment %}
 {% schema %}
 {
   "name": "Visit Bean & Ben",

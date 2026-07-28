@@ -1,6 +1,6 @@
 # Bean & Ben Shopify Theme — Project Progress
 
-Last updated: July 27, 2026
+Last updated: July 28, 2026
 
 ## Workflow Constraint
 
@@ -86,6 +86,20 @@ Recommended mobile menu order from the reference:
 9. Gallery
 10. Visit Us
 11. Contact
+
+## Homepage Template Documentation
+
+Status: Complete.
+
+- Kept `templates/index.json` as strict, upload-safe JSON because Shopify JSON templates do not support comments.
+- Added `docs/project/HOMEPAGE TEMPLATE GUIDE.MD` with an annotated learning version of the template.
+- Documented the hero, venue information blocks, featured menu, rooftop carousel, Visit Bean & Ben section, and homepage rendering order.
+- Explained section instance IDs, section types, settings, blocks, `block_order`, and the global header/footer relationship.
+- Expanded source comments in all five homepage Liquid sections: `hero-section`, `venue-info-strip`, `featured-menu`, `rooftop-carousel`, and `visit-bean-ben`.
+- Documented important Liquid data flow, responsive CSS, fallback behavior, Theme Editor schema boundaries, and the rooftop carousel JavaScript lifecycle.
+- Added safe manual-editing rules for Shopify JSON templates.
+- Confirmed `templates/index.json` remains valid JSON.
+- Shopify Theme Check: passed with 50 theme files inspected and no offenses.
 
 ## Hero Section
 

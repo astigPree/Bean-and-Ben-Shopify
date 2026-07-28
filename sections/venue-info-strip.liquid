@@ -1,3 +1,9 @@
+{% comment %}
+  VENUE INFORMATION SECTION
+  Section color settings are exposed as CSS custom properties so one stylesheet
+  can use merchant-selected colors. The accessibility label names the complete
+  information region for assistive technology.
+{% endcomment %}
 <section
   class="venue-info-strip full-width"
   style="
@@ -11,6 +17,8 @@
   {% comment %}
     Each information item is a Shopify block, so its icon, title, detail,
     position, and visibility can be managed from the Theme Editor.
+    `block.shopify_attributes` lets Shopify identify and select the correct
+    block while the merchant is editing it.
   {% endcomment %}
   <div class="venue-info-strip__list" role="list">
     {% for block in section.blocks %}
@@ -117,6 +125,7 @@
     padding-block: var(--info-item-padding);
   }
 
+  /* Blocks unchecked under "Show on mobile" return at the desktop breakpoint. */
   .venue-info-strip__item--desktop-only {
     display: none;
   }
@@ -162,6 +171,7 @@
     stroke-width: 1.65;
   }
 
+  /* The stem and its ending dot create the vertical phone timeline. */
   .venue-info-strip__stem {
     position: absolute;
     inset-block-start: calc(50% + (var(--info-icon-size) / 2));
@@ -293,6 +303,12 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  The schema defines section colors plus a repeatable `fact` block with an icon,
+  title, detail, and mobile-visibility control. JSON comments are not allowed
+  inside the schema object.
+{% endcomment %}
 {% schema %}
 {
   "name": "Venue information",
