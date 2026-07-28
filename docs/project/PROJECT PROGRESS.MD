@@ -363,11 +363,12 @@ Implemented:
 - Added locale strings for fixed form labels and messages in `locales/en.default.json`.
 - Used only Liquid and component CSS; no JavaScript or CSS Grid was added.
 - Created `templates/page.contact.json`, which makes **contact** available as a Shopify page template.
+- Added source comments explaining form setup, Shopify field names, submission states, validation, verified contact details, responsive Flexbox behavior, and Theme Editor settings.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 48 theme files inspected with no offenses.
+- Result: 50 theme files inspected with no offenses.
 - `templates/page.contact.json`: valid JSON.
 - `locales/en.default.json`: valid JSON.
 - Contact page CSS: no CSS Grid layout used.
