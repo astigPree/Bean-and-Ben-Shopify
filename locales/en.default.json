@@ -51,6 +51,29 @@
     "hours": "Hours",
     "social": "Social"
   },
+  "catalog": {
+    "categories": "Product categories",
+    "product_count": {
+      "one": "{{ count }} product",
+      "other": "{{ count }} products"
+    },
+    "showing_collection": "Showing {{ title }}",
+    "sort_by": "Sort by",
+    "apply": "Apply",
+    "sold_out": "Sold out",
+    "price_range": "Price range",
+    "view_item": "View item",
+    "variant_prices": "Variant prices",
+    "unavailable": "Unavailable",
+    "more_variants": {
+      "one": "{{ count }} more variant available",
+      "other": "{{ count }} more variants available"
+    },
+    "pagination": "Catalog pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{ number }}"
+  },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",

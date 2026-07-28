@@ -383,6 +383,55 @@ Theme Editor setup:
 6. Add approved contact-form privacy language when supplied.
 7. Submit a real test inquiry and confirm delivery to the Shopify store contact email.
 
+## Product Catalog
+
+Status: Complete - replaces the Shopify collection page starter.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated full-menu screenshot was supplied, so the catalog extends the approved featured-menu visual system.
+
+Implemented:
+
+- Rebuilt `sections/collection.liquid` as the complete Shopify product catalog screen.
+- Uses Shopify collections for product categories and Shopify products for names, descriptions, media, prices, variants, and availability.
+- Added mobile-first category navigation with horizontal overflow and desktop wrapping.
+- Added selectable category collections in the Theme Editor.
+- Added accessible Shopify-native sorting that works without JavaScript.
+- Added one-column phone, two-column tablet, and three-column desktop Flexbox layouts.
+- Added responsive Shopify product imagery and a Shopify placeholder when a product image is missing.
+- Added one badge per product using `custom.menu_badge`, with supported tag fallbacks.
+- Added optional `custom.dietary_note` output for verified dietary or allergen information.
+- Added explicit product variant names, prices, and availability.
+- Added product price ranges, descriptions, sold-out treatment, and product-detail links.
+- Kept purchase controls hidden because online ordering remains outside the approved MVP scope.
+- Added merchant-configurable pagination, descriptions, badges, and variant limits.
+- Added a branded collection empty state and accessible custom pagination.
+- Added fixed catalog labels to `locales/en.default.json`.
+- Added documented reusable `menu-product-card` and `price-variants` snippets as recommended by the theme plan.
+- Removed the starter section's CSS Grid and implemented the screen with Flexbox.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 50 theme files inspected with no offenses.
+- `templates/collection.json`: valid JSON data.
+- `locales/en.default.json`: valid JSON.
+- Catalog CSS: no CSS Grid layout used.
+- Catalog JavaScript: none required.
+
+Theme Editor setup:
+
+1. Open a Shopify collection in the Theme Editor.
+2. Select **Product catalog**.
+3. Add and order the approved collections under **Menu categories**.
+4. Choose the products-per-page count and card content settings.
+5. Populate product images, descriptions, variants, prices, and availability in Shopify Products.
+6. Optionally create `custom.menu_badge` and `custom.dietary_note` product metafields.
+7. Add products to the correct Shopify collections.
+
 ## Next Work
 
 - Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.

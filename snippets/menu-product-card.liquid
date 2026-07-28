@@ -1,0 +1,107 @@
+{% doc %}
+  Renders one Shopify product inside the full catalog.
+
+  @param {product} product - Shopify product to display.
+  @param {boolean} show_description - Whether to render the product description.
+  @param {number} description_words - Maximum description word count.
+  @param {boolean} show_badge - Whether to render one approved badge.
+  @param {boolean} show_variants - Whether to render explicit variant prices.
+  @param {number} variant_limit - Maximum number of variants shown.
+
+  @example
+  {% render 'menu-product-card',
+    product: product,
+    show_description: true,
+    description_words: 16,
+    show_badge: true,
+    show_variants: true,
+    variant_limit: 4
+  %}
+{% enddoc %}
+
+{% liquid
+  assign product_image = product.featured_image
+  assign image_alt = product_image.alt | default: product.title
+  assign product_badge = product.metafields.custom.menu_badge.value
+  assign dietary_note = product.metafields.custom.dietary_note.value
+
+  if product.available == false
+    assign product_badge = 'catalog.sold_out' | t
+  elsif product_badge == blank
+    if product.tags contains 'Signature'
+      assign product_badge = 'Signature'
+    elsif product.tags contains 'Bestseller'
+      assign product_badge = 'Bestseller'
+    elsif product.tags contains 'House favorite'
+      assign product_badge = 'House favorite'
+    elsif product.tags contains 'Seasonal'
+      assign product_badge = 'Seasonal'
+    elsif product.tags contains 'New'
+      assign product_badge = 'New'
+    endif
+  endif
+%}
+
+<li class="menu-product-card{% unless product.available %} is-sold-out{% endunless %}">
+  <article class="menu-product-card__article">
+    <a class="menu-product-card__media" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
+      {% if product_image != blank %}
+        {{
+          product_image
+          | image_url: width: 1400
+          | image_tag:
+            widths: '360, 550, 750, 1000, 1200, 1400',
+            sizes: '(min-width: 990px) 30vw, (min-width: 620px) 50vw, 100vw',
+            class: 'menu-product-card__image',
+            loading: 'lazy',
+            alt: image_alt
+        }}
+      {% else %}
+        {{ 'product-1' | placeholder_svg_tag: 'menu-product-card__image menu-product-card__image--placeholder' }}
+      {% endif %}
+
+      {% if show_badge %}
+        {% if product_badge != blank %}
+          <span class="menu-product-card__badge">{{ product_badge | escape }}</span>
+        {% endif %}
+      {% endif %}
+    </a>
+
+    <div class="menu-product-card__content">
+      <h2 class="menu-product-card__title">
+        <a href="{{ product.url }}">{{ product.title | escape }}</a>
+      </h2>
+
+      {% if show_description %}
+        {% if product.description != blank %}
+          <p class="menu-product-card__description">
+            {{ product.description | strip_html | truncatewords: description_words }}
+          </p>
+        {% endif %}
+      {% endif %}
+
+      {% if dietary_note != blank %}
+        <p class="menu-product-card__dietary">{{ dietary_note | escape }}</p>
+      {% endif %}
+
+      {% if show_variants %}
+        {% render 'price-variants', product: product, limit: variant_limit %}
+      {% endif %}
+
+      <div class="menu-product-card__footer">
+        <p class="menu-product-card__price">
+          {% if product.price_varies %}
+            <small>{{ 'catalog.price_range' | t }}</small>
+            <span>{{ product.price_min | money }}–{{ product.price_max | money }}</span>
+          {% else %}
+            <span>{{ product.price | money }}</span>
+          {% endif %}
+        </p>
+
+        <a class="menu-product-card__link" href="{{ product.url }}">
+          {{ 'catalog.view_item' | t }}
+        </a>
+      </div>
+    </div>
+  </article>
+</li>
