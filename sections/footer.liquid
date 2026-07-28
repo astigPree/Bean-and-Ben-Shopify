@@ -1,57 +1,827 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
-  </div>
+{% liquid
+  assign newsletter_form_id = 'FooterNewsletter-' | append: section.id
+  assign current_year = 'now' | date: '%Y'
+%}
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+<footer
+  class="site-footer full-width"
+  style="
+    --footer-background: {{ section.settings.background_color }};
+    --footer-text: {{ section.settings.text_color }};
+    --footer-muted: {{ section.settings.muted_text_color }};
+    --footer-border: {{ section.settings.border_color }};
+    --footer-button-background: {{ section.settings.button_background }};
+    --footer-button-text: {{ section.settings.button_text_color }};
+  "
+>
+  <div class="site-footer__inner">
+    <div class="site-footer__top">
+      <div class="site-footer__brand">
+        {% if section.settings.brand_title != blank %}
+          <a class="site-footer__brand-title" href="{{ routes.root_url }}">
+            {{ section.settings.brand_title | escape }}
+          </a>
+        {% endif %}
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
-    {% endif %}
+        {% if section.settings.tagline != blank %}
+          <p class="site-footer__tagline">{{ section.settings.tagline | escape }}</p>
+        {% endif %}
+
+        {% comment %}
+          Social icons remain visible as disabled spans until their URLs are
+          assigned. This preserves the reference layout without empty links.
+        {% endcomment %}
+        <div class="site-footer__socials" aria-label="Social media">
+          {% if section.settings.facebook_url != blank %}
+            <a
+              class="site-footer__social-link"
+              href="{{ section.settings.facebook_url }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="Facebook"
+            >
+              <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+                <path d="M29 10h7V2h-7c-8 0-13 5-13 14v5H9v9h7v16h10V30h8l2-9H26v-4c0-5 1-7 3-7Z"></path>
+              </svg>
+            </a>
+          {% else %}
+            <span class="site-footer__social-link is-disabled" aria-label="Facebook link not configured">
+              <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+                <path d="M29 10h7V2h-7c-8 0-13 5-13 14v5H9v9h7v16h10V30h8l2-9H26v-4c0-5 1-7 3-7Z"></path>
+              </svg>
+            </span>
+          {% endif %}
+
+          {% if section.settings.instagram_url != blank %}
+            <a
+              class="site-footer__social-link"
+              href="{{ section.settings.instagram_url }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="Instagram"
+            >
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="6" y="6" width="36" height="36" rx="10"></rect>
+                <circle cx="24" cy="24" r="9"></circle>
+                <circle cx="35" cy="13" r="2" fill="currentColor" stroke="none"></circle>
+              </svg>
+            </a>
+          {% else %}
+            <span class="site-footer__social-link is-disabled" aria-label="Instagram link not configured">
+              <svg
+                viewBox="0 0 48 48"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="6" y="6" width="36" height="36" rx="10"></rect>
+                <circle cx="24" cy="24" r="9"></circle>
+                <circle cx="35" cy="13" r="2" fill="currentColor" stroke="none"></circle>
+              </svg>
+            </span>
+          {% endif %}
+
+          {% if section.settings.tiktok_url != blank %}
+            <a
+              class="site-footer__social-link"
+              href="{{ section.settings.tiktok_url }}"
+              target="_blank"
+              rel="noopener"
+              aria-label="TikTok"
+            >
+              <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+                <path d="M31 4c1 6 4 9 10 10v9c-4 0-7-1-10-3v13c0 8-6 13-14 13S4 40 4 33s6-13 13-13c1 0 3 0 4 1v9c-1-1-2-1-4-1-2 0-4 2-4 4s2 4 4 4c3 0 5-2 5-6V4h9Z"></path>
+              </svg>
+            </a>
+          {% else %}
+            <span class="site-footer__social-link is-disabled" aria-label="TikTok link not configured">
+              <svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
+                <path d="M31 4c1 6 4 9 10 10v9c-4 0-7-1-10-3v13c0 8-6 13-14 13S4 40 4 33s6-13 13-13c1 0 3 0 4 1v9c-1-1-2-1-4-1-2 0-4 2-4 4s2 4 4 4c3 0 5-2 5-6V4h9Z"></path>
+              </svg>
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <span class="site-footer__mobile-rule" aria-hidden="true"></span>
+
+      {% comment %}
+        Select Shopify navigation menus for live links. The reference labels
+        appear as non-clickable fallbacks until each menu is selected.
+      {% endcomment %}
+      <nav class="site-footer__navigation" aria-label="Footer navigation">
+        <div class="site-footer__column">
+          {% if section.settings.explore_heading != blank %}
+            <h2 class="site-footer__column-heading">{{ section.settings.explore_heading | escape }}</h2>
+          {% endif %}
+
+          <div class="site-footer__links">
+            {% if section.settings.explore_menu != blank %}
+              {% for link in section.settings.explore_menu.links %}
+                <a href="{{ link.url }}">{{ link.title | escape }}</a>
+              {% endfor %}
+            {% else %}
+              <span>Coffee</span>
+              <span>Food</span>
+              <span>Our space</span>
+              <span>About</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="site-footer__column">
+          {% if section.settings.experiences_heading != blank %}
+            <h2 class="site-footer__column-heading">{{ section.settings.experiences_heading | escape }}</h2>
+          {% endif %}
+
+          <div class="site-footer__links">
+            {% if section.settings.experiences_menu != blank %}
+              {% for link in section.settings.experiences_menu.links %}
+                <a href="{{ link.url }}">{{ link.title | escape }}</a>
+              {% endfor %}
+            {% else %}
+              <span>Coworking</span>
+              <span>Gaming</span>
+              <span>Events</span>
+              <span>Reservations</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="site-footer__column site-footer__column--information">
+          {% if section.settings.information_heading != blank %}
+            <h2 class="site-footer__column-heading">{{ section.settings.information_heading | escape }}</h2>
+          {% endif %}
+
+          <div class="site-footer__links">
+            {% if section.settings.information_menu != blank %}
+              {% for link in section.settings.information_menu.links %}
+                <a href="{{ link.url }}">{{ link.title | escape }}</a>
+              {% endfor %}
+            {% else %}
+              <span>Visit us</span>
+              <span>FAQ</span>
+              <span>Contact</span>
+              <span>Privacy policy</span>
+            {% endif %}
+          </div>
+        </div>
+      </nav>
+
+      <div class="site-footer__newsletter">
+        {% if section.settings.newsletter_heading != blank %}
+          <h2 class="site-footer__column-heading">{{ section.settings.newsletter_heading | escape }}</h2>
+        {% endif %}
+
+        {% if section.settings.newsletter_text != blank %}
+          <p class="site-footer__newsletter-text">{{ section.settings.newsletter_text | escape }}</p>
+        {% endif %}
+
+        {% form 'customer', id: newsletter_form_id, class: 'site-footer__newsletter-form' %}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+
+          <label class="site-footer__visually-hidden" for="FooterEmail-{{ section.id }}">
+            Email address
+          </label>
+          <input
+            id="FooterEmail-{{ section.id }}"
+            class="site-footer__newsletter-input"
+            type="email"
+            name="contact[email]"
+            value="{{ form.email }}"
+            placeholder="{{ section.settings.newsletter_placeholder | escape }}"
+            autocapitalize="off"
+            autocomplete="email"
+            autocorrect="off"
+            required
+          >
+          <button class="site-footer__newsletter-submit" type="submit" aria-label="Subscribe">
+            <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
+              <path d="M10 38 38 10M18 10h20v20"></path>
+            </svg>
+          </button>
+
+          {% if form.posted_successfully? %}
+            <p class="site-footer__form-status" role="status">
+              {{ section.settings.newsletter_success_text | escape }}
+            </p>
+          {% endif %}
+
+          {% if form.errors %}
+            <div class="site-footer__form-status site-footer__form-status--error" role="alert">
+              {{ form.errors | default_errors }}
+            </div>
+          {% endif %}
+        {% endform %}
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>
+        &copy; {{ current_year }} {{ section.settings.copyright_name | escape }}.
+        {{ section.settings.copyright_text | escape }}
+      </p>
+      <span class="site-footer__bottom-separator" aria-hidden="true">|</span>
+      <p>{{ section.settings.location_text | escape }}</p>
+    </div>
   </div>
 </footer>
 
 {% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
+  /* Mobile-first footer foundation. */
+  .site-footer {
+    width: 100%;
+    color: var(--footer-text, #f4f3ef);
+    background: var(--footer-background, #020202);
+    padding: 3rem var(--page-margin, 1.25rem) 1.5rem;
   }
-  footer a {
+
+  .site-footer__inner {
+    display: flex;
+    width: min(100%, 112rem);
+    flex-direction: column;
+    margin-inline: auto;
+  }
+
+  .site-footer__top,
+  .site-footer__brand,
+  .site-footer__navigation,
+  .site-footer__column,
+  .site-footer__links,
+  .site-footer__newsletter,
+  .site-footer__bottom {
+    display: flex;
+  }
+
+  .site-footer__top {
+    flex-direction: column;
+  }
+
+  .site-footer__brand {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .site-footer__brand-title {
+    color: inherit;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(3.4rem, 15vw, 4.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.02em;
+    line-height: 0.9;
     text-decoration: none;
-    color: var(--color-foreground);
+    text-transform: uppercase;
+    white-space: nowrap;
   }
-  footer .footer__links,
-  footer .footer__payment {
+
+  .site-footer__tagline {
+    margin: 0.8rem 0 0;
+    color: var(--footer-muted, #b8b8b8);
+    font-size: clamp(0.7rem, 3vw, 0.82rem);
+    letter-spacing: 0.1em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .site-footer__socials {
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1.75rem, 9vw, 2.75rem);
+    margin-block-start: 1.5rem;
+  }
+
+  .site-footer__social-link {
+    display: inline-flex;
+    width: 2.5rem;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--footer-text, #f4f3ef);
+    transition: opacity 160ms ease;
+  }
+
+  .site-footer__social-link svg {
+    display: block;
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+
+  /*
+   * Filled Facebook/TikTok marks and the outlined Instagram mark define
+   * their own SVG paint. Keeping paint out of the shared rule prevents the
+   * Instagram outline from becoming a solid, broken-looking square.
+   */
+  .site-footer__social-link svg[fill='none'] {
+    stroke-width: 2.8;
+  }
+
+  .site-footer__social-link.is-disabled {
+    cursor: default;
+  }
+
+  .site-footer__mobile-rule {
+    width: 100%;
+    height: 1px;
+    margin-block: 2rem;
+    background: var(--footer-border, #555);
+  }
+
+  /*
+   * The phone reference pairs Explore and Experiences, then centers
+   * Information below. Flex wrapping recreates that layout without CSS Grid.
+   */
+  .site-footer__navigation {
+    flex-wrap: wrap;
+    gap: 2.25rem 0;
+  }
+
+  .site-footer__column {
+    width: 50%;
+    flex: 0 0 50%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .site-footer__column--information {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .site-footer__column-heading {
+    margin: 0;
+    color: var(--footer-text, #f4f3ef);
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(1.15rem, 5vw, 1.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .site-footer__links {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-block-start: 1rem;
+  }
+
+  .site-footer__links a,
+  .site-footer__links span {
+    color: var(--footer-muted, #b8b8b8);
+    font-size: clamp(0.76rem, 3.4vw, 0.9rem);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 160ms ease;
+  }
+
+  .site-footer__newsletter {
+    flex-direction: column;
+    align-items: center;
+    margin-block-start: 2.5rem;
+    text-align: center;
+  }
+
+  .site-footer__newsletter-text {
+    margin: 0.7rem 0 0;
+    color: var(--footer-muted, #b8b8b8);
+    font-size: clamp(0.7rem, 3vw, 0.82rem);
+    letter-spacing: 0.06em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .site-footer__newsletter-form {
+    display: flex;
+    width: min(100%, 32rem);
+    flex-wrap: wrap;
+    margin-block-start: 1rem;
+  }
+
+  .site-footer__newsletter-input {
+    min-width: 0;
+    min-height: 3.5rem;
+    flex: 1 1 auto;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--footer-border, #555);
+    border-right: 0;
+    border-radius: 0;
+    outline: 0;
+    color: var(--footer-text, #f4f3ef);
+    background: transparent;
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .site-footer__newsletter-input::placeholder {
+    color: var(--footer-muted, #b8b8b8);
+    opacity: 1;
+  }
+
+  .site-footer__newsletter-input:focus-visible {
+    box-shadow: inset 0 0 0 1px var(--footer-text, #f4f3ef);
+  }
+
+  .site-footer__newsletter-submit {
+    display: inline-flex;
+    width: 3.5rem;
+    min-height: 3.5rem;
+    flex: 0 0 3.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid var(--footer-button-background, #f4f3ef);
+    border-radius: 0;
+    color: var(--footer-button-text, #050505);
+    background: var(--footer-button-background, #f4f3ef);
+    cursor: pointer;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .site-footer__newsletter-submit svg {
+    width: 1.65rem;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 2;
+  }
+
+  .site-footer__form-status {
+    width: 100%;
+    flex: 0 0 100%;
+    margin: 0.85rem 0 0;
+    color: var(--footer-muted, #b8b8b8);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .site-footer__form-status--error {
+    color: #ef9a9a;
+  }
+
+  .site-footer__form-status--error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    margin-block-start: 2rem;
+    padding-block-start: 1.25rem;
+    border-top: 1px solid var(--footer-border, #555);
+    color: var(--footer-muted, #b8b8b8);
+    text-align: center;
+  }
+
+  .site-footer__bottom p {
+    margin: 0;
+    font-size: clamp(0.68rem, 2.8vw, 0.78rem);
+    letter-spacing: 0.055em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .site-footer__bottom-separator {
+    line-height: 1;
+  }
+
+  .site-footer__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .site-footer__social-link[href]:hover {
+      opacity: 0.65;
+    }
+
+    .site-footer__links a:hover {
+      color: var(--footer-text, #f4f3ef);
+    }
+
+    .site-footer__newsletter-submit:hover {
+      color: var(--footer-button-background, #f4f3ef);
+      background: transparent;
+    }
+  }
+
+  /*
+   * Desktop places brand, three navigation columns, and newsletter in one
+   * Flexbox row to match the wide reference.
+   */
+  @media screen and (min-width: 990px) {
+    .site-footer {
+      padding:
+        clamp(2.75rem, 3.5vw, 4rem)
+        var(--desktop-page-margin, 4rem)
+        1.5rem;
+    }
+
+    .site-footer__top {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: clamp(1.75rem, 2.5vw, 3.5rem);
+    }
+
+    .site-footer__brand {
+      width: 23%;
+      flex: 0 0 23%;
+      align-items: flex-start;
+      text-align: start;
+    }
+
+    .site-footer__brand-title {
+      font-size: clamp(3.25rem, 3.8vw, 4.75rem);
+    }
+
+    .site-footer__tagline {
+      margin-block-start: 0.65rem;
+      font-size: clamp(0.64rem, 0.62vw, 0.76rem);
+    }
+
+    .site-footer__socials {
+      justify-content: flex-start;
+      gap: 1.5rem;
+      margin-block-start: 1.35rem;
+    }
+
+    .site-footer__social-link {
+      width: 2.25rem;
+      height: 2.25rem;
+    }
+
+    .site-footer__social-link svg {
+      width: 1.4rem;
+      height: 1.4rem;
+    }
+
+    .site-footer__mobile-rule {
+      display: none;
+    }
+
+    .site-footer__navigation {
+      width: 42%;
+      flex: 1 1 42%;
+      flex-wrap: nowrap;
+      gap: clamp(1.25rem, 1.7vw, 2.5rem);
+    }
+
+    .site-footer__column,
+    .site-footer__column--information {
+      width: auto;
+      flex: 1 1 0;
+      align-items: flex-start;
+      text-align: start;
+    }
+
+    .site-footer__column-heading {
+      font-size: clamp(1rem, 1.05vw, 1.3rem);
+      white-space: nowrap;
+    }
+
+    .site-footer__links {
+      gap: 0.8rem;
+      margin-block-start: 1rem;
+    }
+
+    .site-footer__links a,
+    .site-footer__links span {
+      font-size: clamp(0.65rem, 0.66vw, 0.78rem);
+      white-space: nowrap;
+    }
+
+    .site-footer__newsletter {
+      width: 29%;
+      flex: 0 0 29%;
+      align-items: flex-start;
+      margin-block-start: 0;
+      text-align: start;
+    }
+
+    .site-footer__newsletter-text {
+      font-size: clamp(0.64rem, 0.62vw, 0.76rem);
+    }
+
+    .site-footer__newsletter-form {
+      width: 100%;
+      max-width: none;
+      margin-block-start: 1rem;
+    }
+
+    .site-footer__bottom {
+      flex-direction: row;
+      justify-content: flex-end;
+      gap: 1.75rem;
+      margin-block-start: clamp(2rem, 2.75vw, 3rem);
+      padding-block-start: 1.25rem;
+      text-align: end;
+    }
+
+    .site-footer__bottom p {
+      font-size: clamp(0.64rem, 0.62vw, 0.76rem);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-footer__social-link,
+    .site-footer__links a,
+    .site-footer__newsletter-submit {
+      transition: none;
+    }
   }
 {% endstylesheet %}
 
 {% schema %}
 {
-  "name": "t:general.footer",
+  "name": "Footer",
   "settings": [
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "header",
+      "content": "Brand"
     },
     {
-      "type": "checkbox",
-      "id": "show_payment_icons",
-      "label": "t:labels.show_payment_icons",
-      "default": true
+      "type": "text",
+      "id": "brand_title",
+      "label": "Brand title",
+      "default": "BEAN & BEN"
+    },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "SPECIALTY COFFEE. ROOFTOP MOMENTS."
+    },
+    {
+      "type": "url",
+      "id": "facebook_url",
+      "label": "Facebook URL"
+    },
+    {
+      "type": "url",
+      "id": "instagram_url",
+      "label": "Instagram URL"
+    },
+    {
+      "type": "url",
+      "id": "tiktok_url",
+      "label": "TikTok URL"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "text",
+      "id": "explore_heading",
+      "label": "Explore heading",
+      "default": "EXPLORE"
+    },
+    {
+      "type": "link_list",
+      "id": "explore_menu",
+      "label": "Explore menu"
+    },
+    {
+      "type": "text",
+      "id": "experiences_heading",
+      "label": "Experiences heading",
+      "default": "EXPERIENCES"
+    },
+    {
+      "type": "link_list",
+      "id": "experiences_menu",
+      "label": "Experiences menu"
+    },
+    {
+      "type": "text",
+      "id": "information_heading",
+      "label": "Information heading",
+      "default": "INFORMATION"
+    },
+    {
+      "type": "link_list",
+      "id": "information_menu",
+      "label": "Information menu"
+    },
+    {
+      "type": "header",
+      "content": "Newsletter"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_heading",
+      "label": "Heading",
+      "default": "STAY IN THE LOOP"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_text",
+      "label": "Text",
+      "default": "GET THE LATEST BREWS, OFFERS, AND EVENTS."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_placeholder",
+      "label": "Email placeholder",
+      "default": "ENTER YOUR EMAIL"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_success_text",
+      "label": "Success message",
+      "default": "You're on the list. Watch your inbox for what comes next."
+    },
+    {
+      "type": "header",
+      "content": "Legal"
+    },
+    {
+      "type": "text",
+      "id": "copyright_name",
+      "label": "Copyright name",
+      "default": "BEAN & BEN"
+    },
+    {
+      "type": "text",
+      "id": "copyright_text",
+      "label": "Copyright text",
+      "default": "ALL RIGHTS RESERVED."
+    },
+    {
+      "type": "text",
+      "id": "location_text",
+      "label": "Location",
+      "default": "SILANG, CAVITE / PHILIPPINES"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#020202"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#F4F3EF"
+    },
+    {
+      "type": "color",
+      "id": "muted_text_color",
+      "label": "Muted text",
+      "default": "#B8B8B8"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Borders",
+      "default": "#555555"
+    },
+    {
+      "type": "color",
+      "id": "button_background",
+      "label": "Newsletter button background",
+      "default": "#F4F3EF"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Newsletter button icon",
+      "default": "#050505"
     }
-  ]
+  ],
+  "enabled_on": {
+    "groups": ["footer"]
+  }
 }
 {% endschema %}

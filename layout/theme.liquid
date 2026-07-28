@@ -32,6 +32,10 @@
 
     {{ content_for_layout }}
 
-    {% comment %} {% sections 'footer-group' %} {% endcomment %}
+    {% comment %}
+      Global footer section group. On the home page this renders immediately
+      after Visit Bean & Ben; other Shopify templates receive the same footer.
+    {% endcomment %}
+    {% sections 'footer-group' %}
   </body>
 </html>
