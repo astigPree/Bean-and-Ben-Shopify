@@ -412,6 +412,7 @@ Implemented:
 - Added fixed catalog labels to `locales/en.default.json`.
 - Added documented reusable `menu-product-card` and `price-variants` snippets as recommended by the theme plan.
 - Removed the starter section's CSS Grid and implemented the screen with Flexbox.
+- Removed the unsupported long range-setting unit from the description word-limit schema so Shopify theme upload accepts the section.
 
 Validation:
 
