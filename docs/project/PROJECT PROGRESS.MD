@@ -457,6 +457,7 @@ Implemented:
 - Added a Shopify-generated placeholder when no product media exists.
 - Added Shopify product structured data for product SEO.
 - Wrapped product structured data in a JSON-LD script so it remains machine-readable without appearing as storefront text.
+- Added source comments explaining the product data setup, badge priority, media loading, pricing, variants, metafields, responsive layout, SEO data, and Theme Editor schema.
 - Removed the starter add-to-cart, quantity, accelerated-checkout, and payment controls because online ordering remains outside the approved MVP scope.
 - Added fixed product UI labels to `locales/en.default.json`.
 - Used Flexbox-only component CSS and no JavaScript.

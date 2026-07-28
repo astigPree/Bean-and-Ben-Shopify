@@ -1,12 +1,20 @@
+{% comment %}
+  PRODUCT DATA SETUP
+  Shopify automatically provides the `product` object on product pages.
+  The first two values come from optional product metafields, while
+  `menu_link` comes from this section's Theme Editor settings.
+{% endcomment %}
 {% liquid
   assign product_badge = product.metafields.custom.menu_badge.value
   assign dietary_note = product.metafields.custom.dietary_note.value
   assign menu_link = section.settings.menu_link
 
+  # Use the All products collection when the merchant leaves Menu link empty.
   if menu_link == blank
     assign menu_link = routes.all_products_collection_url
   endif
 
+  # Badge priority: sold out, menu_badge metafield, then supported product tags.
   if product.available == false
     assign product_badge = 'product.sold_out' | t
   elsif product_badge == blank
@@ -24,11 +32,19 @@
   endif
 %}
 
+{% comment %}
+  The `is-sold-out` class is added only when every variant is unavailable.
+  CSS later uses this class to mute the availability dot and product image.
+{% endcomment %}
 <section
   class="product-detail full-width{% unless product.available %} is-sold-out{% endunless %}"
   aria-labelledby="ProductHeading-{{ section.id }}"
 >
   <div class="product-detail__inner">
+    {% comment %}
+      The breadcrumb can be enabled or disabled in the Theme Editor.
+      `aria-current` tells assistive technology which page is currently open.
+    {% endcomment %}
     {% if section.settings.show_breadcrumb %}
       <nav class="product-detail__breadcrumb" aria-label="{{ 'product.breadcrumb' | t }}">
         <a href="{{ menu_link }}">{{ section.settings.menu_button_label | escape }}</a>
@@ -52,10 +68,18 @@
                   {% assign media_alt = media.alt | default: product.title %}
                   {% assign media_loading = 'lazy' %}
 
+                  {% comment %}
+                    Load the first image immediately because it is visible first.
+                    Remaining images are lazy-loaded to reduce initial page work.
+                  {% endcomment %}
                   {% if forloop.first %}
                     {% assign media_loading = 'eager' %}
                   {% endif %}
 
+                  {% comment %}
+                    Shopify creates responsive image widths from the uploaded
+                    media. The browser chooses the best size for the screen.
+                  {% endcomment %}
                   {{
                     media.preview_image
                     | image_url: width: 2000
@@ -89,6 +113,11 @@
         {% endif %}
       </div>
 
+      {% comment %}
+        PRODUCT INFORMATION
+        This column reads live title, price, availability, description, vendor,
+        type, variants, and metafields from the current Shopify product.
+      {% endcomment %}
       <div class="product-detail__information">
         <div class="product-detail__information-top">
           {% if section.settings.eyebrow != blank %}
@@ -106,6 +135,10 @@
           {{ product.title | escape }}
         </h1>
 
+        {% comment %}
+          A product with different variant prices shows its minimum-to-maximum
+          range. A product with one price shows a single formatted money value.
+        {% endcomment %}
         <div class="product-detail__price-status">
           <p class="product-detail__price">
             {% if product.price_varies %}
@@ -144,12 +177,20 @@
           {% endif %}
         {% endif %}
 
+        {% comment %}
+          Product descriptions are written in Shopify Admin. The `rte` class
+          allows paragraphs, lists, and links from the rich-text editor.
+        {% endcomment %}
         {% if product.description != blank %}
           <div class="product-detail__description rte">
             {{ product.description }}
           </div>
         {% endif %}
 
+        {% comment %}
+          The reusable `price-variants` snippet lists variant names, prices,
+          and availability. The Theme Editor controls how many are displayed.
+        {% endcomment %}
         {% if section.settings.show_variants %}
           {% if product.variants.size > 1 %}
             <div class="product-detail__variants">
@@ -159,6 +200,10 @@
           {% endif %}
         {% endif %}
 
+        {% comment %}
+          Dietary information is shown only when both the Theme Editor setting
+          is enabled and `custom.dietary_note` has a value for this product.
+        {% endcomment %}
         {% if section.settings.show_dietary_note %}
           {% if dietary_note != blank %}
             <div class="product-detail__dietary">
@@ -218,6 +263,10 @@
       var(--color-background, #050505);
   }
 
+  /*
+   * CONTENT WIDTH
+   * Keeps the section centered and uses global theme spacing variables.
+   */
   .product-detail__inner {
     display: flex;
     width: min(100%, var(--page-width, 90rem));
@@ -260,6 +309,11 @@
     gap: 1rem;
   }
 
+  /*
+   * MOBILE MEDIA GALLERY
+   * Flexbox creates a horizontal swipe row. Scroll snap helps each image
+   * settle into position without requiring carousel JavaScript.
+   */
   .product-detail__gallery {
     display: flex;
     min-width: 0;
@@ -318,6 +372,11 @@
     text-transform: uppercase;
   }
 
+  /*
+   * PRODUCT INFORMATION CARD
+   * All product details are stacked on phones. Desktop rules later make this
+   * card sticky beside the image gallery.
+   */
   .product-detail__information {
     display: flex;
     flex-direction: column;
@@ -370,6 +429,7 @@
     text-transform: uppercase;
   }
 
+  /* Price and stock status share one row and wrap safely on narrow phones. */
   .product-detail__price-status {
     display: flex;
     flex-wrap: wrap;
@@ -420,6 +480,7 @@
     background: var(--color-highlight, #d3a35a);
   }
 
+  /* Sold-out styles are activated by the class added to the section above. */
   .product-detail.is-sold-out .product-detail__availability-dot {
     background: var(--color-muted, #777d82);
   }
@@ -484,6 +545,10 @@
     text-transform: uppercase;
   }
 
+  /*
+   * VARIANT PRICE STYLES
+   * These selectors style the markup returned by snippets/price-variants.liquid.
+   */
   .product-detail .menu-product-card__variants {
     display: flex;
     flex-wrap: wrap;
@@ -559,6 +624,7 @@
     line-height: 1.55;
   }
 
+  /* Calls to action stack on phones and become a row on wider screens. */
   .product-detail__actions {
     display: flex;
     flex-direction: column;
@@ -622,6 +688,7 @@
     }
   }
 
+  /* Small tablets and larger screens can place both action links side by side. */
   @media screen and (min-width: 700px) {
     .product-detail__actions {
       flex-direction: row;
@@ -689,6 +756,7 @@
     }
   }
 
+  /* Respect visitors who disable or reduce interface animation. */
   @media (prefers-reduced-motion: reduce) {
     .product-detail__button {
       transition: none;
@@ -696,6 +764,11 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  The JSON schema below creates this section's controls in Shopify's Theme
+  Editor. It must remain valid JSON, so explanatory comments cannot go inside it.
+{% endcomment %}
 {% schema %}
 {
   "name": "Product details",
