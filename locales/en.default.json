@@ -30,6 +30,27 @@
   "collections": {
     "title": "Collections"
   },
+  "contact": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "inquiry_type": "Inquiry type",
+    "choose_topic": "Choose a topic",
+    "topic_general": "General question",
+    "topic_coworking": "Coworking",
+    "topic_gaming": "Gaming",
+    "topic_events": "Events or group visit",
+    "topic_menu": "Menu or allergen question",
+    "topic_other": "Other",
+    "subject": "Subject",
+    "message": "Message",
+    "required_note": "Fields marked * are required.",
+    "error_heading": "Please correct the following:",
+    "direct_email": "Direct email",
+    "visit": "Visit",
+    "hours": "Hours",
+    "social": "Social"
+  },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",

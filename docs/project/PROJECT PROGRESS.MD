@@ -337,6 +337,52 @@ Theme Editor setup:
 5. Adjust footer colors only if the approved design palette changes.
 6. Submit a test email through the storefront after previewing to confirm the Shopify customer/newsletter capture.
 
+## Contact Page
+
+Status: Complete - available as the Shopify `contact` page template.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated contact-page screenshot was supplied, so the page extends the approved dark, condensed, thin-rule design system.
+
+Implemented:
+
+- Built a full-width mobile-first contact screen with one semantic page heading.
+- Added a real Shopify native contact form without external services, scripts, API keys, or fake submission behavior.
+- Added required name, email, inquiry type, and message fields.
+- Added optional phone and subject fields.
+- Added inquiry categories for general questions, coworking, gaming, events/group visits, menu/allergen questions, and other inquiries.
+- Added clear required-field guidance, Shopify error output, focus styles, and a configurable success state.
+- Added an inquiry-guidance panel that asks visitors for the practical details needed for qualified coworking, gaming, event, or group inquiries.
+- Clearly states that form submission does not confirm a booking or reservation.
+- Added optional verified email, phone, address, hours, and Facebook details.
+- Kept public contact details blank by default so unverified information is never published.
+- Added an optional approved privacy-note setting that remains blank until compliant language is supplied.
+- Added locale strings for fixed form labels and messages in `locales/en.default.json`.
+- Used only Liquid and component CSS; no JavaScript or CSS Grid was added.
+- Created `templates/page.contact.json`, which makes **contact** available as a Shopify page template.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 48 theme files inspected with no offenses.
+- `templates/page.contact.json`: valid JSON.
+- `locales/en.default.json`: valid JSON.
+- Contact page CSS: no CSS Grid layout used.
+- Contact page JavaScript: none required.
+
+Theme Editor setup:
+
+1. In Shopify Admin, create or open the Contact page.
+2. Assign **Theme template: contact**.
+3. Open that page in the Theme Editor and select **Contact page**.
+4. Confirm the introduction, form guidance, success message, and inquiry instructions.
+5. Add only verified public email, phone, address, opening hours, and Facebook details.
+6. Add approved contact-form privacy language when supplied.
+7. Submit a real test inquiry and confirm delivery to the Shopify store contact email.
+
 ## Next Work
 
 - Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.
