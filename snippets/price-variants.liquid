@@ -1,0 +1,31 @@
+{% doc %}
+  Renders explicit Shopify variant names, prices, and availability.
+
+  @param {product} product - Product whose variants will be displayed.
+  @param {number} limit - Maximum variants to show.
+
+  @example
+  {% render 'price-variants', product: product, limit: 4 %}
+{% enddoc %}
+
+{% if product.variants.size > 1 %}
+  <div class="menu-product-card__variants" aria-label="{{ 'catalog.variant_prices' | t }}">
+    {% for variant in product.variants limit: limit %}
+      <span class="menu-product-card__variant{% unless variant.available %} is-unavailable{% endunless %}">
+        <span>{{ variant.title | escape }}</span>
+        <strong>{{ variant.price | money }}</strong>
+
+        {% unless variant.available %}
+          <span class="menu-product-card__visually-hidden">{{ 'catalog.unavailable' | t }}</span>
+        {% endunless %}
+      </span>
+    {% endfor %}
+
+    {% if product.variants.size > limit %}
+      {% assign remaining_variants = product.variants.size | minus: limit %}
+      <p class="menu-product-card__variant-more">
+        {{ 'catalog.more_variants' | t: count: remaining_variants }}
+      </p>
+    {% endif %}
+  </div>
+{% endif %}
