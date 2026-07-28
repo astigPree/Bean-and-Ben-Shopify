@@ -433,6 +433,53 @@ Theme Editor setup:
 6. Optionally create `custom.menu_badge` and `custom.dietary_note` product metafields.
 7. Add products to the correct Shopify collections.
 
+## Product Detail Page
+
+Status: Complete - replaces the Shopify product page starter.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated product-page screenshot was supplied, so the page extends the approved featured-menu and catalog design system.
+
+Implemented:
+
+- Rebuilt `sections/product.liquid` as a mobile-first informational menu-item detail page.
+- Added a native horizontally scrollable media gallery on phones and an editorial Flexbox gallery on desktop.
+- Supports Shopify images, video, external video, and product-model media without a carousel library.
+- Added a desktop media/information split with a sticky information panel.
+- Added live Shopify product title, description, price or price range, availability, vendor, and product type.
+- Added one approved badge using `custom.menu_badge`, with supported tag fallbacks.
+- Added explicit variant names, prices, and availability through the reusable `price-variants` snippet.
+- Added optional verified `custom.dietary_note` output.
+- Added configurable menu and contact actions.
+- Added a Shopify-generated placeholder when no product media exists.
+- Added Shopify product structured data for product SEO.
+- Wrapped product structured data in a JSON-LD script so it remains machine-readable without appearing as storefront text.
+- Removed the starter add-to-cart, quantity, accelerated-checkout, and payment controls because online ordering remains outside the approved MVP scope.
+- Added fixed product UI labels to `locales/en.default.json`.
+- Used Flexbox-only component CSS and no JavaScript.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 50 theme files inspected with no offenses.
+- `templates/product.json`: valid JSON data.
+- `locales/en.default.json`: valid JSON data.
+- Product page CSS: no CSS Grid layout used.
+- Product page JavaScript: none required.
+- Starter product purchase and payment controls: removed.
+
+Theme Editor setup:
+
+1. Open a Shopify product in the Theme Editor and select **Product details**.
+2. Confirm the badge, type, variant, dietary-note, and action visibility settings.
+3. Assign the full-menu destination if it should differ from `/collections/all`.
+4. Assign the Contact page to enable **Ask about this item**.
+5. Populate product media, description, type, variants, prices, and availability in Shopify Products.
+6. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
+
 ## Next Work
 
 - Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.

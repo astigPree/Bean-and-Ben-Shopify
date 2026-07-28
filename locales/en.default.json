@@ -95,6 +95,18 @@
     "password": "Password",
     "enter": "Enter"
   },
+  "product": {
+    "breadcrumb": "Product breadcrumb",
+    "media_gallery": "Product media",
+    "swipe_gallery": "Swipe to view more images",
+    "price_range": "Price range",
+    "available": "Available",
+    "sold_out": "Sold out",
+    "vendor": "Vendor",
+    "type": "Category",
+    "variant_prices": "Options and prices",
+    "dietary_note": "Dietary or allergen information"
+  },
   "search": {
     "title": "Search",
     "placeholder": "Search articles, pages, or products",
