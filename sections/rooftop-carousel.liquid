@@ -1,13 +1,25 @@
+{% comment %}
+  ROOFTOP CAROUSEL DATA SETUP
+  The number of rendered slides also determines the number of navigation dots.
+  Three sample slides are used when the merchant has not added image blocks.
+{% endcomment %}
 {% liquid
   assign rendered_slide_count = section.blocks.size
 
+  # Match the three-item fallback rendered later in the section.
   if rendered_slide_count == 0
     assign rendered_slide_count = 3
   endif
 
+  # Convert the Theme Editor value from seconds to milliseconds for JavaScript.
   assign autoplay_interval = section.settings.autoplay_speed | times: 1000
 %}
 
+{% comment %}
+  CSS custom properties control colors and responsive slide widths. The data
+  attributes pass autoplay settings from Liquid to the JavaScript below without
+  creating global variables.
+{% endcomment %}
 <section
   class="rooftop-carousel full-width"
   style="
@@ -84,6 +96,10 @@
       <div class="rooftop-carousel__track" data-carousel-track>
         {% if section.blocks.size > 0 %}
           {% for block in section.blocks %}
+            {% comment %}
+              Alternative-text priority: the manual field, uploaded image alt
+              text, then the visible caption as a last-resort description.
+            {% endcomment %}
             {% liquid
               assign slide_alt = block.settings.alt_text
 
@@ -173,6 +189,10 @@
   </div>
 
   <div class="rooftop-carousel__controls">
+    {% comment %}
+      Buttons and dots use data attributes as stable JavaScript hooks. Dots use
+      zero-based indexes because JavaScript arrays also start at zero.
+    {% endcomment %}
     <button class="rooftop-carousel__arrow" type="button" aria-label="Previous slide" data-carousel-previous>
       <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
         <path d="M31 10H3M11 2l-8 8 8 8"></path>
@@ -342,6 +362,10 @@
     transform: scaleY(-1);
   }
 
+  /*
+   * Native horizontal scrolling and scroll snap keep the carousel usable with
+   * touch, mouse, keyboard, or disabled JavaScript.
+   */
   .rooftop-carousel__viewport {
     width: 100%;
     overflow-x: auto;
@@ -477,6 +501,7 @@
     background: #0c0a08;
   }
 
+  /* Arrow and dot controls reflect the active slide maintained by JavaScript. */
   .rooftop-carousel__controls {
     display: flex;
     align-items: center;
@@ -569,6 +594,11 @@
     }
   }
 
+  /*
+   * DESKTOP LAYOUT
+   * Centers the introduction and changes slide width and image proportion while
+   * retaining the same horizontal Flexbox track.
+   */
   @media screen and (min-width: 990px) {
     .rooftop-carousel__intro {
       align-items: center;
@@ -639,6 +669,7 @@
     }
   }
 
+  /* Remove smooth scrolling and transitions for reduced-motion visitors. */
   @media (prefers-reduced-motion: reduce) {
     .rooftop-carousel__viewport {
       scroll-behavior: auto;
@@ -652,6 +683,11 @@
 {% endstylesheet %}
 
 {% javascript %}
+  /*
+   * Initialize every rooftop carousel that has not already been prepared.
+   * The ready attribute prevents duplicate event listeners after Theme Editor
+   * section reloads.
+   */
   const initializeRooftopCarousels = (root = document) => {
     root.querySelectorAll('[data-rooftop-carousel]:not([data-carousel-ready])').forEach((carousel) => {
       carousel.setAttribute('data-carousel-ready', '');
@@ -665,14 +701,17 @@
       const autoplayEnabled = carousel.dataset.autoplay === 'true';
       const autoplayInterval = Number(carousel.dataset.autoplayInterval) || 5000;
 
+      // Stop safely if the expected carousel markup is unavailable.
       if (!viewport || slides.length === 0) return;
 
+      // Mutable state shared by scrolling, controls, visibility, and autoplay.
       let activeIndex = 0;
       let autoplayTimer;
       let interactionPaused = false;
       let carouselVisible = true;
       let scrollFrame;
 
+      // Keep navigation dots and accessibility state synchronized.
       const updateActiveSlide = (nextIndex) => {
         activeIndex = nextIndex;
 
@@ -688,6 +727,7 @@
         });
       };
 
+      // After manual scrolling, find the slide closest to the viewport center.
       const findNearestSlide = () => {
         const viewportCenter = viewport.scrollLeft + viewport.clientWidth / 2;
         let nearestIndex = 0;
@@ -706,6 +746,10 @@
         updateActiveSlide(nearestIndex);
       };
 
+      /*
+       * Center a requested slide. Modulo wraps previous/next navigation from
+       * the first slide to the last and from the last back to the first.
+       */
       const moveToSlide = (requestedIndex, behavior = 'smooth') => {
         const nextIndex = (requestedIndex + slides.length) % slides.length;
         const slide = slides[nextIndex];
@@ -719,11 +763,16 @@
         updateActiveSlide(nextIndex);
       };
 
+      // Always clear the old timer before starting or restarting autoplay.
       const stopAutoplay = () => {
         window.clearInterval(autoplayTimer);
         autoplayTimer = undefined;
       };
 
+      /*
+       * Autoplay runs only when enabled, motion is allowed, the visitor is not
+       * interacting, the carousel is visible, and at least two slides exist.
+       */
       const startAutoplay = () => {
         stopAutoplay();
 
@@ -736,6 +785,7 @@
         }, autoplayInterval);
       };
 
+      // Hover, pointer, and keyboard focus pause automatic movement.
       const pauseInteraction = () => {
         interactionPaused = true;
         stopAutoplay();
@@ -746,6 +796,7 @@
         startAutoplay();
       };
 
+      // Previous, next, and dot controls all use the same movement function.
       previousButton?.addEventListener('click', () => {
         moveToSlide(activeIndex - 1);
         startAutoplay();
@@ -763,6 +814,7 @@
         });
       });
 
+      // Arrow keys work because the scrollable viewport has tabindex="0".
       viewport.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowLeft') {
           event.preventDefault();
@@ -775,6 +827,7 @@
         }
       });
 
+      // requestAnimationFrame limits active-dot calculations during rapid scrolling.
       viewport.addEventListener('scroll', () => {
         window.cancelAnimationFrame(scrollFrame);
         scrollFrame = window.requestAnimationFrame(findNearestSlide);
@@ -794,6 +847,10 @@
 
       reducedMotion.addEventListener('change', startAutoplay);
 
+      /*
+       * Stop the timer while the carousel is off-screen to avoid unnecessary
+       * background work. Native controls still work without IntersectionObserver.
+       */
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver((entries) => {
           carouselVisible = entries[0]?.isIntersecting ?? true;
@@ -813,13 +870,20 @@
     });
   };
 
+  // Initialize the storefront markup rendered with the initial page request.
   initializeRooftopCarousels();
 
+  // Reinitialize only the section Shopify replaces inside the Theme Editor.
   document.addEventListener('shopify:section:load', (event) => {
     initializeRooftopCarousels(event.target);
   });
 {% endjavascript %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  The schema defines content, autoplay, responsive slide widths, colors, and up
+  to twelve repeatable image blocks. It must remain strict comment-free JSON.
+{% endcomment %}
 {% schema %}
 {
   "name": "Rooftop carousel",

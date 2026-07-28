@@ -1,6 +1,6 @@
 # Bean & Ben Shopify Theme — Project Progress
 
-Last updated: July 27, 2026
+Last updated: July 28, 2026
 
 ## Workflow Constraint
 
@@ -86,6 +86,20 @@ Recommended mobile menu order from the reference:
 9. Gallery
 10. Visit Us
 11. Contact
+
+## Homepage Template Documentation
+
+Status: Complete.
+
+- Kept `templates/index.json` as strict, upload-safe JSON because Shopify JSON templates do not support comments.
+- Added `docs/project/HOMEPAGE TEMPLATE GUIDE.MD` with an annotated learning version of the template.
+- Documented the hero, venue information blocks, featured menu, rooftop carousel, Visit Bean & Ben section, and homepage rendering order.
+- Explained section instance IDs, section types, settings, blocks, `block_order`, and the global header/footer relationship.
+- Expanded source comments in all five homepage Liquid sections: `hero-section`, `venue-info-strip`, `featured-menu`, `rooftop-carousel`, and `visit-bean-ben`.
+- Documented important Liquid data flow, responsive CSS, fallback behavior, Theme Editor schema boundaries, and the rooftop carousel JavaScript lifecycle.
+- Added safe manual-editing rules for Shopify JSON templates.
+- Confirmed `templates/index.json` remains valid JSON.
+- Shopify Theme Check: passed with 50 theme files inspected and no offenses.
 
 ## Hero Section
 
@@ -363,11 +377,12 @@ Implemented:
 - Added locale strings for fixed form labels and messages in `locales/en.default.json`.
 - Used only Liquid and component CSS; no JavaScript or CSS Grid was added.
 - Created `templates/page.contact.json`, which makes **contact** available as a Shopify page template.
+- Added source comments explaining form setup, Shopify field names, submission states, validation, verified contact details, responsive Flexbox behavior, and Theme Editor settings.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 48 theme files inspected with no offenses.
+- Result: 50 theme files inspected with no offenses.
 - `templates/page.contact.json`: valid JSON.
 - `locales/en.default.json`: valid JSON.
 - Contact page CSS: no CSS Grid layout used.
@@ -412,6 +427,8 @@ Implemented:
 - Added fixed catalog labels to `locales/en.default.json`.
 - Added documented reusable `menu-product-card` and `price-variants` snippets as recommended by the theme plan.
 - Removed the starter section's CSS Grid and implemented the screen with Flexbox.
+- Removed the unsupported long range-setting unit from the description word-limit schema so Shopify theme upload accepts the section.
+- Added source comments explaining Shopify collection data, sorting, category navigation, product-card rendering, pagination, empty states, responsive Flexbox layouts, and Theme Editor settings.
 
 Validation:
 
@@ -431,6 +448,54 @@ Theme Editor setup:
 5. Populate product images, descriptions, variants, prices, and availability in Shopify Products.
 6. Optionally create `custom.menu_badge` and `custom.dietary_note` product metafields.
 7. Add products to the correct Shopify collections.
+
+## Product Detail Page
+
+Status: Complete - replaces the Shopify product page starter.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated product-page screenshot was supplied, so the page extends the approved featured-menu and catalog design system.
+
+Implemented:
+
+- Rebuilt `sections/product.liquid` as a mobile-first informational menu-item detail page.
+- Added a native horizontally scrollable media gallery on phones and an editorial Flexbox gallery on desktop.
+- Supports Shopify images, video, external video, and product-model media without a carousel library.
+- Added a desktop media/information split with a sticky information panel.
+- Added live Shopify product title, description, price or price range, availability, vendor, and product type.
+- Added one approved badge using `custom.menu_badge`, with supported tag fallbacks.
+- Added explicit variant names, prices, and availability through the reusable `price-variants` snippet.
+- Added optional verified `custom.dietary_note` output.
+- Added configurable menu and contact actions.
+- Added a Shopify-generated placeholder when no product media exists.
+- Added Shopify product structured data for product SEO.
+- Wrapped product structured data in a JSON-LD script so it remains machine-readable without appearing as storefront text.
+- Added source comments explaining the product data setup, badge priority, media loading, pricing, variants, metafields, responsive layout, SEO data, and Theme Editor schema.
+- Removed the starter add-to-cart, quantity, accelerated-checkout, and payment controls because online ordering remains outside the approved MVP scope.
+- Added fixed product UI labels to `locales/en.default.json`.
+- Used Flexbox-only component CSS and no JavaScript.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 50 theme files inspected with no offenses.
+- `templates/product.json`: valid JSON data.
+- `locales/en.default.json`: valid JSON data.
+- Product page CSS: no CSS Grid layout used.
+- Product page JavaScript: none required.
+- Starter product purchase and payment controls: removed.
+
+Theme Editor setup:
+
+1. Open a Shopify product in the Theme Editor and select **Product details**.
+2. Confirm the badge, type, variant, dietary-note, and action visibility settings.
+3. Assign the full-menu destination if it should differ from `/collections/all`.
+4. Assign the Contact page to enable **Ask about this item**.
+5. Populate product media, description, type, variants, prices, and availability in Shopify Products.
+6. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
 
 ## Next Work
 

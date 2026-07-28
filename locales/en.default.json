@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "404": {
     "title": "404",
@@ -85,6 +94,18 @@
     "title": "This shop is private",
     "password": "Password",
     "enter": "Enter"
+  },
+  "product": {
+    "breadcrumb": "Product breadcrumb",
+    "media_gallery": "Product media",
+    "swipe_gallery": "Swipe to view more images",
+    "price_range": "Price range",
+    "available": "Available",
+    "sold_out": "Sold out",
+    "vendor": "Vendor",
+    "type": "Category",
+    "variant_prices": "Options and prices",
+    "dietary_note": "Dietary or allergen information"
   },
   "search": {
     "title": "Search",

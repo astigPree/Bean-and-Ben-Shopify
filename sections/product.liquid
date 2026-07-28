@@ -1,50 +1,869 @@
 {% comment %}
-  This section is used in the product template to render product page with
-  media, content, and add-to-cart form.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/product
+  PRODUCT DATA SETUP
+  Shopify automatically provides the `product` object on product pages.
+  The first two values come from optional product metafields, while
+  `menu_link` comes from this section's Theme Editor settings.
 {% endcomment %}
+{% liquid
+  assign product_badge = product.metafields.custom.menu_badge.value
+  assign dietary_note = product.metafields.custom.dietary_note.value
+  assign menu_link = section.settings.menu_link
 
-<div class="product-images">
-  {% for image in product.images %}
-    {% render 'image', class: 'product-image', image: image %}
-  {% endfor %}
-</div>
+  # Use the All products collection when the merchant leaves Menu link empty.
+  if menu_link == blank
+    assign menu_link = routes.all_products_collection_url
+  endif
 
-<div class="product-info">
-  <h1>{{ product.title }}</h1>
-  <p>{{ product.price | money }}</p>
-  <p>{{ product.description }}</p>
-</div>
+  # Badge priority: sold out, menu_badge metafield, then supported product tags.
+  if product.available == false
+    assign product_badge = 'product.sold_out' | t
+  elsif product_badge == blank
+    if product.tags contains 'Signature'
+      assign product_badge = 'Signature'
+    elsif product.tags contains 'Bestseller'
+      assign product_badge = 'Bestseller'
+    elsif product.tags contains 'House favorite'
+      assign product_badge = 'House favorite'
+    elsif product.tags contains 'Seasonal'
+      assign product_badge = 'Seasonal'
+    elsif product.tags contains 'New'
+      assign product_badge = 'New'
+    endif
+  endif
+%}
 
-<div class="product-form">
-  {% form 'product', product %}
-    {% assign current_variant = product.selected_or_first_available_variant %}
+{% comment %}
+  The `is-sold-out` class is added only when every variant is unavailable.
+  CSS later uses this class to mute the availability dot and product image.
+{% endcomment %}
+<section
+  class="product-detail full-width{% unless product.available %} is-sold-out{% endunless %}"
+  aria-labelledby="ProductHeading-{{ section.id }}"
+>
+  <div class="product-detail__inner">
+    {% comment %}
+      The breadcrumb can be enabled or disabled in the Theme Editor.
+      `aria-current` tells assistive technology which page is currently open.
+    {% endcomment %}
+    {% if section.settings.show_breadcrumb %}
+      <nav class="product-detail__breadcrumb" aria-label="{{ 'product.breadcrumb' | t }}">
+        <a href="{{ menu_link }}">{{ section.settings.menu_button_label | escape }}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">{{ product.title | escape }}</span>
+      </nav>
+    {% endif %}
 
-    <select name="id">
-      {% for variant in product.variants %}
-        <option
-          value="{{ variant.id }}"
-          {% if variant == current_variant %}
-            selected="selected"
+    <div class="product-detail__layout">
+      <div class="product-detail__gallery" aria-label="{{ 'product.media_gallery' | t }}">
+        {% if product.media.size > 0 %}
+          {% comment %}
+            The media gallery uses native horizontal scrolling on phones and
+            wraps into an editorial Flexbox gallery on desktop. No carousel
+            library or JavaScript is required.
+          {% endcomment %}
+          <div class="product-detail__media-list">
+            {% for media in product.media %}
+              <div class="product-detail__media-item{% if forloop.first %} product-detail__media-item--lead{% endif %}">
+                {% if media.media_type == 'image' %}
+                  {% assign media_alt = media.alt | default: product.title %}
+                  {% assign media_loading = 'lazy' %}
+
+                  {% comment %}
+                    Load the first image immediately because it is visible first.
+                    Remaining images are lazy-loaded to reduce initial page work.
+                  {% endcomment %}
+                  {% if forloop.first %}
+                    {% assign media_loading = 'eager' %}
+                  {% endif %}
+
+                  {% comment %}
+                    Shopify creates responsive image widths from the uploaded
+                    media. The browser chooses the best size for the screen.
+                  {% endcomment %}
+                  {{
+                    media.preview_image
+                    | image_url: width: 2000
+                    | image_tag:
+                      widths: '550, 750, 1000, 1400, 1700, 2000',
+                      sizes: '(min-width: 990px) 55vw, 90vw',
+                      class: 'product-detail__media-image',
+                      loading: media_loading,
+                      alt: media_alt
+                  }}
+                {% else %}
+                  {{
+                    media
+                    | media_tag:
+                      image_size: '1400x',
+                      controls: true,
+                      class: 'product-detail__media-element'
+                  }}
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+
+          {% if product.media.size > 1 %}
+            <p class="product-detail__gallery-note">{{ 'product.swipe_gallery' | t }}</p>
           {% endif %}
-        >
-          {{ variant.title }} - {{ variant.price | money }}
-        </option>
-      {% endfor %}
-    </select>
+        {% else %}
+          <div class="product-detail__media-item product-detail__media-item--lead">
+            {{ 'product-1' | placeholder_svg_tag: 'product-detail__media-image product-detail__media-image--placeholder' }}
+          </div>
+        {% endif %}
+      </div>
 
-    <input type="text" name="quantity" min="1" value="1">
+      {% comment %}
+        PRODUCT INFORMATION
+        This column reads live title, price, availability, description, vendor,
+        type, variants, and metafields from the current Shopify product.
+      {% endcomment %}
+      <div class="product-detail__information">
+        <div class="product-detail__information-top">
+          {% if section.settings.eyebrow != blank %}
+            <p class="product-detail__eyebrow">{{ section.settings.eyebrow | escape }}</p>
+          {% endif %}
 
-    <input type="submit" value="Add to cart">
-    {{ form | payment_button }}
-  {% endform %}
-</div>
+          {% if section.settings.show_badge %}
+            {% if product_badge != blank %}
+              <span class="product-detail__badge">{{ product_badge | escape }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
 
+        <h1 id="ProductHeading-{{ section.id }}" class="product-detail__heading">
+          {{ product.title | escape }}
+        </h1>
+
+        {% comment %}
+          A product with different variant prices shows its minimum-to-maximum
+          range. A product with one price shows a single formatted money value.
+        {% endcomment %}
+        <div class="product-detail__price-status">
+          <p class="product-detail__price">
+            {% if product.price_varies %}
+              <small>{{ 'product.price_range' | t }}</small>
+              <span>{{ product.price_min | money }}–{{ product.price_max | money }}</span>
+            {% else %}
+              <span>{{ product.price | money }}</span>
+            {% endif %}
+          </p>
+
+          <p class="product-detail__availability">
+            <span class="product-detail__availability-dot" aria-hidden="true"></span>
+            {% if product.available %}
+              {{ 'product.available' | t }}
+            {% else %}
+              {{ 'product.sold_out' | t }}
+            {% endif %}
+          </p>
+        </div>
+
+        {% if section.settings.show_vendor %}
+          {% if product.vendor != blank %}
+            <div class="product-detail__meta-row">
+              <span>{{ 'product.vendor' | t }}</span>
+              <strong>{{ product.vendor | escape }}</strong>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if section.settings.show_type %}
+          {% if product.type != blank %}
+            <div class="product-detail__meta-row">
+              <span>{{ 'product.type' | t }}</span>
+              <strong>{{ product.type | escape }}</strong>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% comment %}
+          Product descriptions are written in Shopify Admin. The `rte` class
+          allows paragraphs, lists, and links from the rich-text editor.
+        {% endcomment %}
+        {% if product.description != blank %}
+          <div class="product-detail__description rte">
+            {{ product.description }}
+          </div>
+        {% endif %}
+
+        {% comment %}
+          The reusable `price-variants` snippet lists variant names, prices,
+          and availability. The Theme Editor controls how many are displayed.
+        {% endcomment %}
+        {% if section.settings.show_variants %}
+          {% if product.variants.size > 1 %}
+            <div class="product-detail__variants">
+              <h2>{{ 'product.variant_prices' | t }}</h2>
+              {% render 'price-variants', product: product, limit: section.settings.variant_limit %}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% comment %}
+          Dietary information is shown only when both the Theme Editor setting
+          is enabled and `custom.dietary_note` has a value for this product.
+        {% endcomment %}
+        {% if section.settings.show_dietary_note %}
+          {% if dietary_note != blank %}
+            <div class="product-detail__dietary">
+              <span>{{ 'product.dietary_note' | t }}</span>
+              <p>{{ dietary_note | escape }}</p>
+            </div>
+          {% endif %}
+        {% endif %}
+
+        {% if section.settings.product_note != blank %}
+          <p class="product-detail__note">{{ section.settings.product_note | escape }}</p>
+        {% endif %}
+
+        {% comment %}
+          Purchasing controls are intentionally omitted until online ordering
+          and payment operations receive explicit business approval.
+        {% endcomment %}
+        <div class="product-detail__actions">
+          <a class="product-detail__button product-detail__button--primary" href="{{ menu_link }}">
+            <span>{{ section.settings.menu_button_label | escape }}</span>
+            <svg viewBox="0 0 32 20" fill="none" aria-hidden="true">
+              <path d="M31 10H3M11 2l-8 8 8 8"></path>
+            </svg>
+          </a>
+
+          {% if section.settings.contact_link != blank %}
+            {% if section.settings.contact_button_label != blank %}
+              <a
+                class="product-detail__button product-detail__button--secondary"
+                href="{{ section.settings.contact_link }}"
+              >
+                {{ section.settings.contact_button_label | escape }}
+              </a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% comment %}
+  Product structured data belongs inside a JSON-LD script. Rendering the
+  filter directly would expose the raw JSON as visible storefront text.
+{% endcomment %}
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% stylesheet %}
+  /* Mobile-first product detail foundation. */
+  .product-detail {
+    width: 100%;
+    color: var(--color-foreground, #f3f0e8);
+    background:
+      radial-gradient(circle at 92% 6%, rgb(211 163 90 / 7%), transparent 22rem),
+      var(--color-background, #050505);
+  }
+
+  /*
+   * CONTENT WIDTH
+   * Keeps the section centered and uses global theme spacing variables.
+   */
+  .product-detail__inner {
+    display: flex;
+    width: min(100%, var(--page-width, 90rem));
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-inline: auto;
+    padding:
+      var(--mobile-section-spacing, 4.5rem)
+      var(--page-margin, 1.25rem);
+  }
+
+  .product-detail__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 58%, transparent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .product-detail__breadcrumb a {
+    flex: 0 0 auto;
+    color: var(--color-highlight, #d3a35a);
+    text-decoration: none;
+  }
+
+  .product-detail__breadcrumb span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .product-detail__layout {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /*
+   * MOBILE MEDIA GALLERY
+   * Flexbox creates a horizontal swipe row. Scroll snap helps each image
+   * settle into position without requiring carousel JavaScript.
+   */
+  .product-detail__gallery {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .product-detail__media-list {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-block-end: 0.35rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+  }
+
+  .product-detail__media-item {
+    position: relative;
+    display: flex;
+    width: 88%;
+    min-width: 0;
+    flex: 0 0 88%;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 32%, transparent);
+    background: var(--color-secondary, #151515);
+    scroll-snap-align: start;
+    aspect-ratio: 4 / 5;
+  }
+
+  .product-detail__media-item:only-child {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .product-detail__media-image,
+  .product-detail__media-element,
+  .product-detail__media-item video,
+  .product-detail__media-item iframe,
+  .product-detail__media-item model-viewer {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .product-detail__media-image--placeholder {
+    padding: 18%;
+    color: color-mix(in srgb, var(--color-highlight, #d3a35a) 45%, transparent);
+    fill: currentColor;
+  }
+
+  .product-detail__gallery-note {
+    margin: 0.65rem 0 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 55%, transparent);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  /*
+   * PRODUCT INFORMATION CARD
+   * All product details are stacked on phones. Desktop rules later make this
+   * card sticky beside the image gallery.
+   */
+  .product-detail__information {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(1.25rem, 5vw, 2rem);
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 38%, transparent);
+    background: var(--color-secondary, #151515);
+  }
+
+  .product-detail__information-top {
+    display: flex;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .product-detail__eyebrow {
+    margin: 0;
+    color: var(--color-highlight, #d3a35a);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .product-detail__badge {
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.65rem;
+    border: 1px solid var(--color-highlight, #d3a35a);
+    color: var(--color-highlight, #d3a35a);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .product-detail__heading {
+    margin: 1.25rem 0 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(3.75rem, 17vw, 6rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.01em;
+    line-height: 0.88;
+    text-transform: uppercase;
+  }
+
+  /* Price and stock status share one row and wrap safely on narrow phones. */
+  .product-detail__price-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: 1.5rem;
+    padding-block: 1.25rem;
+    border-block:
+      1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
+  }
+
+  .product-detail__price {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin: 0;
+    color: var(--color-highlight, #d3a35a);
+    font-size: clamp(1.75rem, 8vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .product-detail__price small {
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 58%, transparent);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-detail__availability {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 75%, transparent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .product-detail__availability-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--color-highlight, #d3a35a);
+  }
+
+  /* Sold-out styles are activated by the class added to the section above. */
+  .product-detail.is-sold-out .product-detail__availability-dot {
+    background: var(--color-muted, #777d82);
+  }
+
+  .product-detail.is-sold-out .product-detail__media-image {
+    filter: grayscale(0.65);
+  }
+
+  .product-detail__meta-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.8rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 20%, transparent);
+  }
+
+  .product-detail__meta-row span {
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 55%, transparent);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .product-detail__meta-row strong {
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: end;
+  }
+
+  .product-detail__description {
+    margin-block-start: 1.5rem;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 84%, transparent);
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .product-detail__description > :first-child {
+    margin-block-start: 0;
+  }
+
+  .product-detail__description > :last-child {
+    margin-block-end: 0;
+  }
+
+  .product-detail__variants {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-block-start: 1.75rem;
+  }
+
+  .product-detail__variants h2 {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: 1.5rem;
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  /*
+   * VARIANT PRICE STYLES
+   * These selectors style the markup returned by snippets/price-variants.liquid.
+   */
+  .product-detail .menu-product-card__variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .product-detail .menu-product-card__variant {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 32%, transparent);
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 82%, transparent);
+    font-size: 0.76rem;
+    line-height: 1.3;
+  }
+
+  .product-detail .menu-product-card__variant strong {
+    color: var(--color-highlight, #d3a35a);
+  }
+
+  .product-detail .menu-product-card__variant.is-unavailable {
+    opacity: 0.48;
+    text-decoration: line-through;
+  }
+
+  .product-detail .menu-product-card__variant-more {
+    width: 100%;
+    margin: 0.25rem 0 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 55%, transparent);
+    font-size: 0.72rem;
+  }
+
+  .product-detail .menu-product-card__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .product-detail__dietary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-block-start: 1.5rem;
+    padding: 1rem;
+    border-left: 2px solid var(--color-highlight, #d3a35a);
+    background: color-mix(in srgb, var(--color-highlight, #d3a35a) 7%, transparent);
+  }
+
+  .product-detail__dietary span {
+    color: var(--color-highlight, #d3a35a);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .product-detail__dietary p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .product-detail__note {
+    margin: 1.25rem 0 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 60%, transparent);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  /* Calls to action stack on phones and become a row on wider screens. */
+  .product-detail__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-block-start: 1.75rem;
+  }
+
+  .product-detail__button {
+    display: inline-flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid var(--color-action, #f3f0e8);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .product-detail__button--primary {
+    color: var(--color-action-text, #050505);
+    background: var(--color-action, #f3f0e8);
+  }
+
+  .product-detail__button--secondary {
+    color: var(--color-action, #f3f0e8);
+    background: transparent;
+  }
+
+  .product-detail__button svg {
+    width: 1.65rem;
+    flex: 0 0 auto;
+    stroke: currentColor;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    stroke-width: 1.5;
+  }
+
+  @media (hover: hover) {
+    .product-detail__button--primary:hover {
+      color: var(--color-action, #f3f0e8);
+      background: transparent;
+    }
+
+    .product-detail__button--secondary:hover {
+      color: var(--color-action-text, #050505);
+      background: var(--color-action, #f3f0e8);
+    }
+
+    .product-detail__breadcrumb a:hover {
+      color: var(--color-foreground, #f3f0e8);
+    }
+  }
+
+  /* Small tablets and larger screens can place both action links side by side. */
+  @media screen and (min-width: 700px) {
+    .product-detail__actions {
+      flex-direction: row;
+    }
+
+    .product-detail__button {
+      flex: 1 1 50%;
+    }
+  }
+
+  /*
+   * Desktop uses an editorial media/information split. The information stays
+   * visible while visitors review additional product media.
+   */
+  @media screen and (min-width: 990px) {
+    .product-detail__inner {
+      gap: 2rem;
+      padding:
+        var(--desktop-section-spacing, 8.75rem)
+        var(--desktop-page-margin, 4rem);
+    }
+
+    .product-detail__layout {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1.25rem;
+    }
+
+    .product-detail__gallery {
+      width: calc(58% - 0.625rem);
+      flex: 1 1 calc(58% - 0.625rem);
+    }
+
+    .product-detail__media-list {
+      flex-wrap: wrap;
+      overflow: visible;
+    }
+
+    .product-detail__media-item {
+      width: calc(50% - 0.375rem);
+      flex: 1 1 calc(50% - 0.375rem);
+      aspect-ratio: 4 / 5;
+    }
+
+    .product-detail__media-item--lead {
+      width: 100%;
+      flex-basis: 100%;
+      aspect-ratio: 5 / 4;
+    }
+
+    .product-detail__gallery-note {
+      display: none;
+    }
+
+    .product-detail__information {
+      position: sticky;
+      top: 1.5rem;
+      width: calc(42% - 0.625rem);
+      flex: 0 0 calc(42% - 0.625rem);
+      padding: clamp(2rem, 3vw, 3rem);
+    }
+
+    .product-detail__heading {
+      font-size: clamp(4.5rem, 5.8vw, 7rem);
+    }
+  }
+
+  /* Respect visitors who disable or reduce interface animation. */
+  @media (prefers-reduced-motion: reduce) {
+    .product-detail__button {
+      transition: none;
+    }
+  }
+{% endstylesheet %}
+
+{% comment %}
+  THEME EDITOR SETTINGS
+  The JSON schema below creates this section's controls in Shopify's Theme
+  Editor. It must remain valid JSON, so explanatory comments cannot go inside it.
+{% endcomment %}
 {% schema %}
 {
-  "name": "t:general.product",
-  "settings": [],
+  "name": "Product details",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Product information"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "FROM THE BAR"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumb",
+      "label": "Show menu breadcrumb",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badge",
+      "label": "Show one product badge",
+      "default": true,
+      "info": "Uses custom.menu_badge first, then supported product tags."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show product vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_type",
+      "label": "Show product type",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variants",
+      "label": "Show explicit variant prices",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "variant_limit",
+      "label": "Variant prices shown",
+      "min": 4,
+      "max": 12,
+      "step": 1,
+      "default": 8
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dietary_note",
+      "label": "Show dietary or allergen note",
+      "default": true,
+      "info": "Uses the verified custom.dietary_note product metafield."
+    },
+    {
+      "type": "textarea",
+      "id": "product_note",
+      "label": "Optional shared product note",
+      "info": "Use only for verified information that applies to every product using this template."
+    },
+    {
+      "type": "header",
+      "content": "Actions"
+    },
+    {
+      "type": "text",
+      "id": "menu_button_label",
+      "label": "Menu button label",
+      "default": "BACK TO FULL MENU"
+    },
+    {
+      "type": "url",
+      "id": "menu_link",
+      "label": "Menu link",
+      "info": "If empty, Shopify's All products collection is used."
+    },
+    {
+      "type": "text",
+      "id": "contact_button_label",
+      "label": "Contact button label",
+      "default": "ASK ABOUT THIS ITEM"
+    },
+    {
+      "type": "url",
+      "id": "contact_link",
+      "label": "Contact page link"
+    }
+  ],
   "disabled_on": {
     "groups": ["header", "footer"]
   }

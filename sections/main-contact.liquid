@@ -1,7 +1,14 @@
+{% comment %}
+  CONTACT PAGE DATA SETUP
+  Theme Editor values are available through `section.settings`. The generated
+  form ID includes `section.id`, which keeps it unique if this section appears
+  more than once on a page.
+{% endcomment %}
 {% liquid
   assign contact_form_id = 'ContactForm-' | append: section.id
   assign has_contact_details = false
 
+  # Show the details area when at least one verified contact value is provided.
   if section.settings.contact_email != blank
     assign has_contact_details = true
   endif
@@ -22,15 +29,25 @@
     assign has_contact_details = true
   endif
 
+  # Remove visual punctuation so the phone number works safely in a tel: link.
   assign phone_href = section.settings.contact_phone
   assign phone_href = phone_href | remove: ' ' | remove: '-' | remove: '(' | remove: ')'
 %}
 
+{% comment %}
+  `aria-labelledby` connects this section to its visible page heading.
+  `section.id` ensures the heading ID is unique in the rendered page.
+{% endcomment %}
 <section
   class="contact-page full-width"
   aria-labelledby="ContactPageHeading-{{ section.id }}"
 >
   <div class="contact-page__inner">
+    {% comment %}
+      PAGE INTRODUCTION
+      Most text comes from the Theme Editor. Optional `page.content` comes from
+      the Shopify page record assigned to this contact template.
+    {% endcomment %}
     <header class="contact-page__intro">
       {% if section.settings.eyebrow != blank %}
         <p class="contact-page__eyebrow">{{ section.settings.eyebrow | escape }}</p>
@@ -74,6 +91,10 @@
           configured contact email. No external form service or API key is used.
         {% endcomment %}
         {% form 'contact', id: contact_form_id, class: 'contact-page__form' %}
+          {% comment %}
+            After a valid submission Shopify sets `posted_successfully?` to true.
+            The form is replaced by the merchant-configurable success message.
+          {% endcomment %}
           {% if form.posted_successfully? %}
             <div class="contact-page__success" tabindex="-1" role="status">
               <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
@@ -86,6 +107,10 @@
               </div>
             </div>
           {% else %}
+            {% comment %}
+              If Shopify rejects a submission, `form.errors` contains the
+              validation messages. `default_errors` formats them as a list.
+            {% endcomment %}
             {% if form.errors %}
               <div class="contact-page__errors" role="alert" tabindex="-1">
                 <p>{{ 'contact.error_heading' | t }}</p>
@@ -95,6 +120,13 @@
 
             <p class="contact-page__required-note">{{ 'contact.required_note' | t }}</p>
 
+            {% comment %}
+              FORM FIELD NAMES
+              Inputs named `contact[...]` are collected by Shopify and included
+              in the email sent to the store. Email and body use Shopify's
+              standard keys; custom keys such as Inquiry type are also included.
+              The `required` attribute enables browser-side validation.
+            {% endcomment %}
             <div class="contact-page__fields">
               <div class="contact-page__field contact-page__field--half">
                 <label for="ContactName-{{ section.id }}">
@@ -105,6 +137,7 @@
                   id="ContactName-{{ section.id }}"
                   type="text"
                   name="contact[name]"
+                  {% comment %}Keep the entered value after an unsuccessful submission.{% endcomment %}
                   value="{{ form.name | escape }}"
                   autocomplete="name"
                   required
@@ -178,6 +211,10 @@
               </div>
             </div>
 
+            {% comment %}
+              Privacy text is intentionally optional until the business approves
+              the exact wording in the Theme Editor.
+            {% endcomment %}
             {% if section.settings.privacy_note != blank %}
               <p class="contact-page__privacy-note">{{ section.settings.privacy_note | escape }}</p>
             {% endif %}
@@ -192,6 +229,11 @@
         {% endform %}
       </div>
 
+      {% comment %}
+        CONTACT DETAILS PANEL
+        This aside displays only verified merchant-provided information. It is
+        separate from the form so visitors can also contact or visit directly.
+      {% endcomment %}
       <aside class="contact-page__details" aria-labelledby="ContactDetailsHeading-{{ section.id }}">
         <div class="contact-page__panel-heading">
           <div>
@@ -255,6 +297,10 @@
             {% endif %}
           </div>
         {% elsif request.design_mode %}
+          {% comment %}
+            `request.design_mode` is true only in the Theme Editor. This setup
+            reminder helps the merchant but never appears on the live storefront.
+          {% endcomment %}
           <p class="contact-page__editor-note">
             Add verified email, phone, address, hours, or Facebook details in this section's settings.
           </p>
@@ -279,6 +325,10 @@
       var(--color-background, #050505);
   }
 
+  /*
+   * CONTENT WIDTH
+   * Centers the page and reuses the global mobile spacing and page-width values.
+   */
   .contact-page__inner {
     display: flex;
     width: min(100%, var(--page-width, 90rem));
@@ -337,6 +387,11 @@
     margin-block-end: 0;
   }
 
+  /*
+   * MOBILE LAYOUT
+   * The form and details panels stack vertically first. Desktop rules later
+   * place them side by side using Flexbox.
+   */
   .contact-page__layout {
     display: flex;
     flex-direction: column;
@@ -390,6 +445,7 @@
     line-height: 1;
   }
 
+  /* Shopify adds submission state inside this form container after a POST. */
   .contact-page__form {
     display: flex;
     flex-direction: column;
@@ -400,6 +456,11 @@
     color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 60%, transparent);
   }
 
+  /*
+   * FORM FIELDS
+   * Flexbox keeps every field full-width on phones. Fields marked `--half`
+   * become two columns at the 700px breakpoint.
+   */
   .contact-page__fields {
     display: flex;
     flex-wrap: wrap;
@@ -453,6 +514,7 @@
     cursor: pointer;
   }
 
+  /* A strong keyboard focus indicator keeps all controls accessible. */
   .contact-page__field input:focus-visible,
   .contact-page__field select:focus-visible,
   .contact-page__field textarea:focus-visible {
@@ -502,6 +564,7 @@
     stroke-width: 1.5;
   }
 
+  /* Shopify validation errors and the successful-submit message share a panel style. */
   .contact-page__errors,
   .contact-page__success {
     display: flex;
@@ -544,6 +607,7 @@
     line-height: 1.55;
   }
 
+  /* Verified email, phone, address, hours, and social links use this list. */
   .contact-page__details {
     gap: 1.75rem;
   }
@@ -619,6 +683,7 @@
     }
   }
 
+  /* Wider screens place half-width fields in two columns. */
   @media screen and (min-width: 700px) {
     .contact-page__field--half {
       width: calc(50% - 0.575rem);
@@ -667,6 +732,7 @@
     }
   }
 
+  /* Respect visitors who request reduced interface motion. */
   @media (prefers-reduced-motion: reduce) {
     .contact-page__submit {
       transition: none;
@@ -674,6 +740,11 @@
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  This JSON schema creates the contact section's controls and limits the section
+  to page templates. It must remain valid JSON, so comments cannot go inside it.
+{% endcomment %}
 {% schema %}
 {
   "name": "Contact page",
