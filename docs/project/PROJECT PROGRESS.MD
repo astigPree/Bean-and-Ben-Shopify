@@ -370,11 +370,16 @@ Implemented:
 - Applied the theme's full-width section utility so the footer background spans the complete screen while its inner content remains centered.
 - Added explanatory Liquid and CSS comments throughout `sections/footer.liquid`.
 - Used Flexbox for the complete mobile and desktop layout; no CSS Grid was added.
+- Added a one-time, low-threshold footer reveal that begins when the section enters the viewport.
+- Sequenced the phone brand, tagline, social icons, navigation columns, newsletter, and legal row with short opacity/transform transitions.
+- Added a desktop-specific composition where the brand enters from the left, navigation rises, and the newsletter enters from the right.
+- Animated the top boundary and mobile divider with `scaleX` to complete the reveal without changing layout.
+- Preserved visible content when JavaScript is unavailable, disabled motion for reduced-motion visitors, and added reveal reinitialization after Theme Editor section reloads.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 46 theme files inspected with no offenses.
+- Result: 50 theme files inspected with no offenses.
 - Homepage template: valid JSON.
 - Footer CSS: no CSS Grid layout used.
 
