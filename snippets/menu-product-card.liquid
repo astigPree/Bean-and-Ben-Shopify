@@ -62,15 +62,15 @@
       {% else %}
         {{ 'product-1' | placeholder_svg_tag: 'menu-product-card__image menu-product-card__image--placeholder' }}
       {% endif %}
+    </a>
 
+    <div class="menu-product-card__content">
       {% if show_badge %}
         {% if product_badge != blank %}
           <span class="menu-product-card__badge">{{ product_badge | escape }}</span>
         {% endif %}
       {% endif %}
-    </a>
 
-    <div class="menu-product-card__content">
       <h2 class="menu-product-card__title">
         <a href="{{ product.url }}">{{ product.title | escape }}</a>
       </h2>
