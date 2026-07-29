@@ -217,6 +217,13 @@ Implemented:
 - Rebuilt the featured-menu cards against the supplied phone and desktop references: a cinematic lead product, two-column supporting products, image-and-copy card splits, orange badges/rules, and the bordered full-menu CTA.
 - Grouped each Shopify product's heading and details so the title, description, and price follow the reference's editorial spacing without hard-coded product content.
 - Updated the default section description and accent orange to match the approved reference more closely.
+- Added a one-time scroll-triggered featured-menu reveal using `IntersectionObserver`.
+- Phone content rises into view with a staged introduction, lead product, supporting products, and full-menu action.
+- Desktop introduction and lead product enter from the left while supporting products enter from the right.
+- Added subtle product-media settling, a horizontally extending footer rule, and a final menu-link reveal.
+- Added dynamic per-card delays based on the current Shopify product order through `snippets/featured-menu-card.liquid`.
+- Animates the branded empty state as one unit when no products are selected.
+- Keeps all content visible without JavaScript, bypasses motion for reduced-motion visitors, and reinitializes in the Theme Editor.
 
 Validation:
 
