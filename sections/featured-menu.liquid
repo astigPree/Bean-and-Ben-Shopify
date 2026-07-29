@@ -42,6 +42,7 @@
     --featured-menu-background-position: {{ section.settings.background_image_position }};
     --featured-menu-background-overlay: {{ background_overlay_opacity }};
   "
+  data-featured-menu
 >
   {% if section.settings.background_image != blank %}
     {% comment %}
@@ -90,14 +91,20 @@
           {% render 'featured-menu-card',
             product: product,
             card_style: 'lead',
-            lead_badge: section.settings.lead_badge
+            lead_badge: section.settings.lead_badge,
+            reveal_delay: 180
           %}
         {% endfor %}
 
         {% if featured_product_count > 1 %}
           <div class="featured-menu__supporting">
             {% for product in featured_products offset: 1 limit: 4 %}
-              {% render 'featured-menu-card', product: product, card_style: 'supporting' %}
+              {% assign supporting_reveal_delay = forloop.index0 | times: 55 | plus: 230 %}
+              {% render 'featured-menu-card',
+                product: product,
+                card_style: 'supporting',
+                reveal_delay: supporting_reveal_delay
+              %}
             {% endfor %}
           </div>
         {% endif %}
@@ -577,6 +584,74 @@
     stroke-width: 1.5;
   }
 
+  /*
+   * SCROLL REVEAL ENHANCEMENT
+   * Everything remains visible by default. JavaScript adds the ready class only
+   * when it can observe the section, preserving the complete no-JavaScript view.
+   */
+  .featured-menu.is-animation-ready .featured-menu__eyebrow,
+  .featured-menu.is-animation-ready .featured-menu__heading,
+  .featured-menu.is-animation-ready .featured-menu__description {
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__heading {
+    transition-delay: 60ms;
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__description {
+    transition-delay: 120ms;
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__card {
+    transition:
+      opacity 500ms cubic-bezier(0.22, 1, 0.36, 1) var(--featured-card-delay, 180ms),
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1) var(--featured-card-delay, 180ms);
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__media {
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1) var(--featured-card-delay, 180ms);
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__empty {
+    transition:
+      opacity 500ms cubic-bezier(0.22, 1, 0.36, 1) 180ms,
+      transform 500ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__footer-rule {
+    transform-origin: left center;
+    transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1) 450ms;
+  }
+
+  .featured-menu.is-animation-ready .featured-menu__menu-link {
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      opacity 400ms cubic-bezier(0.22, 1, 0.36, 1) 500ms,
+      transform 400ms cubic-bezier(0.22, 1, 0.36, 1) 500ms;
+  }
+
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__eyebrow,
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__heading,
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__description,
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__card,
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__empty,
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__menu-link {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__media {
+    transform: scale(1.03);
+  }
+
+  .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__footer-rule {
+    transform: scaleX(0);
+  }
+
   @media (hover: hover) {
     .featured-menu__card-link:hover .featured-menu__image {
       transform: scale(1.025);
@@ -706,16 +781,91 @@
       min-height: 5rem;
       flex: 0 0 28rem;
     }
+
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__eyebrow,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__heading,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__description,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__card--lead {
+      transform: translateX(-1.5rem);
+    }
+
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__card--supporting {
+      transform: translateX(1.5rem);
+    }
   }
 
   /* Disable decorative transitions when the visitor requests reduced motion. */
   @media (prefers-reduced-motion: reduce) {
+    .featured-menu.is-animation-ready .featured-menu__eyebrow,
+    .featured-menu.is-animation-ready .featured-menu__heading,
+    .featured-menu.is-animation-ready .featured-menu__description,
+    .featured-menu.is-animation-ready .featured-menu__card,
+    .featured-menu.is-animation-ready .featured-menu__media,
+    .featured-menu.is-animation-ready .featured-menu__empty,
+    .featured-menu.is-animation-ready .featured-menu__footer-rule,
+    .featured-menu.is-animation-ready .featured-menu__menu-link,
     .featured-menu__image,
     .featured-menu__menu-link {
       transition: none;
     }
+
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__eyebrow,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__heading,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__description,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__card,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__media,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__empty,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__footer-rule,
+    .featured-menu.is-animation-ready:not(.is-visible) .featured-menu__menu-link {
+      opacity: 1;
+      transform: none;
+    }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  /*
+   * Reveal each featured menu once as it enters the viewport. The ready marker
+   * prevents duplicate observers after Shopify Theme Editor section reloads.
+   */
+  const initializeFeaturedMenuAnimations = (root = document) => {
+    root.querySelectorAll('[data-featured-menu]:not([data-animation-ready])').forEach((menu) => {
+      menu.setAttribute('data-animation-ready', '');
+      menu.classList.add('is-animation-ready');
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const revealMenu = () => {
+        menu.classList.add('is-visible');
+      };
+
+      if (reducedMotion || !('IntersectionObserver' in window)) {
+        revealMenu();
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries[0]?.isIntersecting) return;
+
+        revealMenu();
+        observer.disconnect();
+      }, {
+        threshold: 0.08,
+        rootMargin: '0px 0px -8% 0px',
+      });
+
+      window.requestAnimationFrame(() => {
+        observer.observe(menu);
+      });
+    });
+  };
+
+  initializeFeaturedMenuAnimations();
+
+  document.addEventListener('shopify:section:load', (event) => {
+    initializeFeaturedMenuAnimations(event.target);
+  });
+{% endjavascript %}
 
 {% comment %}
   THEME EDITOR SETTINGS

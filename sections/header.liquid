@@ -84,8 +84,16 @@
       <div class="header-drawer__panel">
         <nav class="header-drawer__nav" aria-label="Mobile navigation">
           <ul class="header-drawer__list" role="list">
+            {% comment %}
+              Calculate a short stagger from the Shopify menu order. Reordering
+              links in Navigation automatically updates their animation timing.
+            {% endcomment %}
             {% for link in mobile_menu.links %}
-              <li class="header-drawer__item{% if link.current or link.child_active %} is-active{% endif %}">
+              {% assign mobile_menu_delay = forloop.index0 | times: 32 | plus: 70 %}
+              <li
+                class="header-drawer__item{% if link.current or link.child_active %} is-active{% endif %}"
+                style="--mobile-menu-delay: {{ mobile_menu_delay }}ms;"
+              >
                 <a
                   class="header-drawer__link"
                   href="{{ link.url }}"
@@ -476,10 +484,92 @@
     }
   }
 
+  /*
+   * Phone entrance animations use only opacity and transform for reliable
+   * performance. The logo and menu control settle in from 12px above.
+   */
+  @keyframes bean-ben-mobile-header-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-0.75rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* The opened drawer uses a short whole-panel reveal before its content stagger. */
+  @keyframes bean-ben-mobile-drawer-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-0.75rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Menu links and supporting details rise slightly into their final positions. */
+  @keyframes bean-ben-mobile-menu-item-enter {
+    from {
+      opacity: 0;
+      transform: translateY(0.75rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .site-header__logo {
+      animation: bean-ben-mobile-header-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+    }
+
+    .header-drawer__toggle {
+      animation: bean-ben-mobile-header-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+    }
+
+    .header-drawer[open] .header-drawer__panel {
+      animation: bean-ben-mobile-drawer-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .header-drawer[open] .header-drawer__item {
+      animation: bean-ben-mobile-menu-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1)
+        var(--mobile-menu-delay, 70ms) both;
+    }
+
+    .header-drawer[open] .header-drawer__details {
+      animation: bean-ben-mobile-menu-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) 430ms both;
+    }
+  }
+
+  /*
+   * Desktop entrance animation:
+   * fade the complete navigation row in while it settles from above.
+   */
+  @keyframes bean-ben-desktop-navigation-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-1.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @media screen and (min-width: 990px) {
     .site-header__inner {
       min-height: 7.5rem;
       margin-inline: var(--desktop-page-margin, 4rem);
+      animation: bean-ben-desktop-navigation-enter 700ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
     }
 
     .site-header__logo-image {
@@ -534,6 +624,18 @@
     .header-drawer__icon span,
     .site-header__desktop-link {
       transition: none;
+    }
+
+    .site-header__inner {
+      animation: none;
+    }
+
+    .site-header__logo,
+    .header-drawer__toggle,
+    .header-drawer__panel,
+    .header-drawer__item,
+    .header-drawer__details {
+      animation: none;
     }
   }
 {% endstylesheet %}

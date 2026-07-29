@@ -102,6 +102,8 @@
             {% endcomment %}
             {% liquid
               assign slide_alt = block.settings.alt_text
+              assign slide_reveal_index = forloop.index0 | at_most: 4
+              assign slide_reveal_delay = slide_reveal_index | times: 55 | plus: 260
 
               if slide_alt == blank
                 assign slide_alt = block.settings.image.alt
@@ -114,7 +116,10 @@
 
             <article
               class="rooftop-carousel__slide{% if block.settings.image == blank %} rooftop-carousel__slide--placeholder{% endif %}"
-              style="--rooftop-image-position: {{ block.settings.image_position }};"
+              style="
+                --rooftop-image-position: {{ block.settings.image_position }};
+                --rooftop-reveal-delay: {{ slide_reveal_delay }}ms;
+              "
               data-carousel-slide
               {{ block.shopify_attributes }}
             >
@@ -156,6 +161,7 @@
             no fake photos and disappear as soon as the first image block is added.
           {% endcomment %}
           {% for sample_index in (1..3) %}
+            {% assign sample_reveal_delay = forloop.index0 | times: 55 | plus: 260 %}
             {% case sample_index %}
               {% when 1 %}
                 {% assign sample_caption = 'Coffee bar' %}
@@ -165,7 +171,11 @@
                 {% assign sample_caption = 'Dine together' %}
             {% endcase %}
 
-            <article class="rooftop-carousel__slide rooftop-carousel__slide--placeholder" data-carousel-slide>
+            <article
+              class="rooftop-carousel__slide rooftop-carousel__slide--placeholder"
+              style="--rooftop-reveal-delay: {{ sample_reveal_delay }}ms;"
+              data-carousel-slide
+            >
               <div class="rooftop-carousel__media">
                 <div class="rooftop-carousel__sample">
                   <span>0{{ sample_index }}</span>
@@ -579,6 +589,82 @@
     stroke-width: 1.4;
   }
 
+  /*
+   * SCROLL REVEAL ENHANCEMENT
+   * Content stays visible by default. The existing carousel JavaScript adds the
+   * ready class only when it can coordinate the reveal and autoplay lifecycle.
+   */
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__eyebrow,
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__heading,
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__description {
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__heading {
+    transition-delay: 60ms;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__description {
+    transition-delay: 120ms;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__button {
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1) 180ms,
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__eyebrow-row > span {
+    transform-origin: left center;
+    transition: transform 450ms cubic-bezier(0.22, 1, 0.36, 1) 80ms;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__film-rail {
+    transform-origin: left center;
+    transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1) 180ms;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__film-rail--bottom {
+    transform-origin: right center;
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__slide {
+    transition:
+      opacity 440ms cubic-bezier(0.22, 1, 0.36, 1) var(--rooftop-reveal-delay, 260ms),
+      transform 440ms cubic-bezier(0.22, 1, 0.36, 1) var(--rooftop-reveal-delay, 260ms);
+  }
+
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__controls,
+  .rooftop-carousel.is-animation-ready .rooftop-carousel__swipe-hint {
+    transition:
+      opacity 350ms cubic-bezier(0.22, 1, 0.36, 1) 430ms,
+      transform 350ms cubic-bezier(0.22, 1, 0.36, 1) 430ms;
+  }
+
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__eyebrow,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__heading,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__description,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__button,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__slide,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__controls,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__swipe-hint {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__eyebrow-row > span,
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__film-rail {
+    transform: scaleX(0);
+  }
+
+  .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__film-rail--bottom {
+    transform: scaleX(0) scaleY(-1);
+  }
+
   @media (hover: hover) {
     .rooftop-carousel__button:not(:disabled):hover {
       color: var(--rooftop-accent, #d3a35a);
@@ -679,6 +765,35 @@
     .rooftop-carousel__image {
       transition: none;
     }
+
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__eyebrow,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__heading,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__description,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__button,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__eyebrow-row > span,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__film-rail,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__slide,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__controls,
+    .rooftop-carousel.is-animation-ready .rooftop-carousel__swipe-hint {
+      transition: none;
+    }
+
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__eyebrow,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__heading,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__description,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__button,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__eyebrow-row > span,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__film-rail,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__slide,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__controls,
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__swipe-hint {
+      opacity: 1;
+      transform: none;
+    }
+
+    .rooftop-carousel.is-animation-ready:not(.is-visible) .rooftop-carousel__film-rail--bottom {
+      transform: scaleY(-1);
+    }
   }
 {% endstylesheet %}
 
@@ -691,6 +806,7 @@
   const initializeRooftopCarousels = (root = document) => {
     root.querySelectorAll('[data-rooftop-carousel]:not([data-carousel-ready])').forEach((carousel) => {
       carousel.setAttribute('data-carousel-ready', '');
+      carousel.classList.add('is-animation-ready');
 
       const viewport = carousel.querySelector('[data-carousel-viewport]');
       const slides = Array.from(carousel.querySelectorAll('[data-carousel-slide]'));
@@ -708,7 +824,10 @@
       let activeIndex = 0;
       let autoplayTimer;
       let interactionPaused = false;
-      let carouselVisible = true;
+      let carouselVisible = !('IntersectionObserver' in window);
+      let entranceStarted = false;
+      let entranceComplete = false;
+      let entranceTimer;
       let scrollFrame;
 
       // Keep navigation dots and accessibility state synchronized.
@@ -771,18 +890,50 @@
 
       /*
        * Autoplay runs only when enabled, motion is allowed, the visitor is not
-       * interacting, the carousel is visible, and at least two slides exist.
+       * interacting, the carousel is visible, its entrance has completed, and
+       * at least two slides exist.
        */
       const startAutoplay = () => {
         stopAutoplay();
 
-        if (!autoplayEnabled || reducedMotion.matches || interactionPaused || !carouselVisible || slides.length < 2) {
+        if (
+          !autoplayEnabled
+          || reducedMotion.matches
+          || interactionPaused
+          || !carouselVisible
+          || !entranceComplete
+          || slides.length < 2
+        ) {
           return;
         }
 
         autoplayTimer = window.setInterval(() => {
           moveToSlide(activeIndex + 1);
         }, autoplayInterval);
+      };
+
+      const finishEntrance = () => {
+        window.clearTimeout(entranceTimer);
+        entranceComplete = true;
+        startAutoplay();
+      };
+
+      /*
+       * Reveal once, then release autoplay after the visual entrance finishes.
+       * Reduced-motion visitors receive the final state immediately.
+       */
+      const revealEntrance = () => {
+        if (entranceStarted) return;
+
+        entranceStarted = true;
+        carousel.classList.add('is-visible');
+
+        if (reducedMotion.matches) {
+          finishEntrance();
+          return;
+        }
+
+        entranceTimer = window.setTimeout(finishEntrance, 800);
       };
 
       // Hover, pointer, and keyboard focus pause automatic movement.
@@ -845,7 +996,16 @@
         });
       });
 
-      reducedMotion.addEventListener('change', startAutoplay);
+      reducedMotion.addEventListener('change', () => {
+        if (reducedMotion.matches) {
+          revealEntrance();
+          finishEntrance();
+          stopAutoplay();
+          return;
+        }
+
+        startAutoplay();
+      });
 
       /*
        * Stop the timer while the carousel is off-screen to avoid unnecessary
@@ -856,13 +1016,22 @@
           carouselVisible = entries[0]?.isIntersecting ?? true;
 
           if (carouselVisible) {
+            revealEntrance();
             startAutoplay();
           } else {
             stopAutoplay();
           }
         }, { threshold: 0.15 });
 
-        observer.observe(carousel);
+        window.requestAnimationFrame(() => {
+          observer.observe(carousel);
+        });
+      } else {
+        revealEntrance();
+      }
+
+      if (reducedMotion.matches) {
+        revealEntrance();
       }
 
       updateActiveSlide(0);

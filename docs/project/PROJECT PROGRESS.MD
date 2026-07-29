@@ -1,6 +1,6 @@
 # Bean & Ben Shopify Theme — Project Progress
 
-Last updated: July 28, 2026
+Last updated: July 29, 2026
 
 ## Workflow Constraint
 
@@ -36,6 +36,11 @@ Implemented:
 - The home-page header overlays the hero area. On other page types, it uses a normal black header so page content is not covered.
 - Added keyboard Escape handling, menu closing after link selection, reduced-motion support, and accessible navigation labels.
 - Connected header colors, borders, desktop spacing, and button radius to the global CSS variables.
+- Added a desktop-only navigation entrance that fades in while sliding down from above.
+- Disabled the navigation entrance animation when the visitor prefers reduced motion.
+- Added a phone/tablet logo and hamburger entrance that fades and settles from above.
+- Added a quick mobile drawer reveal plus automatically staggered menu links based on their Shopify navigation order.
+- Limited mobile navigation motion to opacity and transforms for reliable phone performance.
 - Added the required LiquidDoc header to `snippets/css-variables.liquid`.
 - Fixed the invalid trailing comma in `sections/header-group.json`.
 
@@ -116,6 +121,10 @@ Implemented:
 - Added independent phone and desktop image-position controls to keep the subject visible after cropping.
 - Added adjustable dark-overlay strength and minimum-height controls.
 - Used Flexbox for the content, action buttons, and scroll-cue layouts.
+- Added a desktop-only staggered hero entrance that fades the eyebrow, heading, description, and actions in from the left.
+- Disabled the hero entrance animation when the visitor prefers reduced motion.
+- Added a shorter phone/tablet hero entrance with a 20px left offset and faster staggered timing.
+- Kept hero controls interactive throughout the animation and limited movement to opacity and transforms.
 - Added clear Liquid and CSS comments inside `sections/hero-section.liquid`.
 - Connected the global display-font setting to CSS variables for the condensed hero heading.
 
@@ -156,6 +165,12 @@ Implemented:
 - Added editable background, text, accent, divider, and accessibility-label settings.
 - Reduced the phone and desktop icon scale by about 20% and tightened the related timeline and section spacing.
 - Added explanatory Liquid and CSS comments in `sections/venue-info-strip.liquid`.
+- Added a one-time scroll-triggered venue-information reveal using `IntersectionObserver`.
+- Phone facts reveal top-to-bottom with scaled icons, left-sliding text, and vertically extending timeline stems.
+- Desktop facts reveal left-to-right with scaled icons, rising text, and a horizontally extending timeline rule.
+- Added automatic per-block stagger timing based on the Shopify block order.
+- Kept all venue content visible without JavaScript and bypassed motion for reduced-motion visitors.
+- Reinitializes safely when Shopify reloads the section inside the Theme Editor.
 - Connected the section after the hero in `templates/index.json`.
 
 Validation:
@@ -202,6 +217,13 @@ Implemented:
 - Rebuilt the featured-menu cards against the supplied phone and desktop references: a cinematic lead product, two-column supporting products, image-and-copy card splits, orange badges/rules, and the bordered full-menu CTA.
 - Grouped each Shopify product's heading and details so the title, description, and price follow the reference's editorial spacing without hard-coded product content.
 - Updated the default section description and accent orange to match the approved reference more closely.
+- Added a one-time scroll-triggered featured-menu reveal using `IntersectionObserver`.
+- Phone content rises into view with a staged introduction, lead product, supporting products, and full-menu action.
+- Desktop introduction and lead product enter from the left while supporting products enter from the right.
+- Added subtle product-media settling, a horizontally extending footer rule, and a final menu-link reveal.
+- Added dynamic per-card delays based on the current Shopify product order through `snippets/featured-menu-card.liquid`.
+- Animates the branded empty state as one unit when no products are selected.
+- Keeps all content visible without JavaScript, bypasses motion for reduced-motion visitors, and reinitializes in the Theme Editor.
 
 Validation:
 
@@ -245,6 +267,13 @@ Implemented:
 - Added a branded placeholder when a gallery block exists without an uploaded image.
 - Used Flexbox for the intro, carousel track, slides, captions, controls, dots, and fallback layouts.
 - Added explanatory Liquid, CSS, and JavaScript comments in `sections/rooftop-carousel.liquid`.
+- Added a one-time scroll-triggered rooftop entrance integrated into the existing carousel observer.
+- Staged the eyebrow, heading, description, action, film rails, slides, controls, and swipe hint using opacity and vertical transforms.
+- Top and bottom film rails extend from opposite directions without interfering with native horizontal scrolling.
+- Added capped per-slide reveal delays for uploaded image blocks and the three-slide fallback state.
+- Autoplay now waits until the entrance sequence finishes and still pauses off-screen or during visitor interaction.
+- Reduced-motion visitors bypass the entrance and autoplay, while the complete carousel remains visible without JavaScript.
+- Preserved Theme Editor section reload initialization without duplicate listeners or observers.
 - Connected the section below the Featured menu in `templates/index.json`.
 
 Validation:
@@ -288,6 +317,13 @@ Implemented:
 - Added editable section, panel, text, border, and primary-button colors.
 - Added explanatory Liquid and CSS comments throughout `sections/visit-bean-ben.liquid`.
 - Used Flexbox for the panel, venue facts, actions, map fallback, and responsive desktop composition.
+- Added a one-time scroll-triggered Visit section reveal using `IntersectionObserver`.
+- Phone facts reveal top-to-bottom with scaled icons, left-moving text, rising actions, and the map appearing last.
+- Desktop information enters from the left while the uploaded or fallback map enters from the right.
+- Replaced the fixed desktop map boundary with a vertically extending divider animation.
+- Uses conditional `:nth-child()` delays so omitted venue facts do not leave gaps in the reveal sequence.
+- Added a single fallback-map marker scale entrance without continuous movement.
+- Keeps all venue and map content visible without JavaScript, bypasses motion for reduced-motion visitors, and reinitializes in the Theme Editor.
 - Connected the section after the Rooftop carousel in `templates/index.json`.
 
 Validation:
@@ -334,11 +370,16 @@ Implemented:
 - Applied the theme's full-width section utility so the footer background spans the complete screen while its inner content remains centered.
 - Added explanatory Liquid and CSS comments throughout `sections/footer.liquid`.
 - Used Flexbox for the complete mobile and desktop layout; no CSS Grid was added.
+- Added a one-time, low-threshold footer reveal that begins when the section enters the viewport.
+- Sequenced the phone brand, tagline, social icons, navigation columns, newsletter, and legal row with short opacity/transform transitions.
+- Added a desktop-specific composition where the brand enters from the left, navigation rises, and the newsletter enters from the right.
+- Animated the top boundary and mobile divider with `scaleX` to complete the reveal without changing layout.
+- Preserved visible content when JavaScript is unavailable, disabled motion for reduced-motion visitors, and added reveal reinitialization after Theme Editor section reloads.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 46 theme files inspected with no offenses.
+- Result: 50 theme files inspected with no offenses.
 - Homepage template: valid JSON.
 - Footer CSS: no CSS Grid layout used.
 
@@ -375,9 +416,14 @@ Implemented:
 - Kept public contact details blank by default so unverified information is never published.
 - Added an optional approved privacy-note setting that remains blank until compliant language is supplied.
 - Added locale strings for fixed form labels and messages in `locales/en.default.json`.
-- Used only Liquid and component CSS; no JavaScript or CSS Grid was added.
+- Used Liquid, component CSS, and a lightweight reveal observer; no CSS Grid was added.
 - Created `templates/page.contact.json`, which makes **contact** available as a Shopify page template.
 - Added source comments explaining form setup, Shopify field names, submission states, validation, verified contact details, responsive Flexbox behavior, and Theme Editor settings.
+- Added independent one-time reveals for the introduction, form panel, and contact-details panel so the long phone layout animates only when each group reaches the viewport.
+- Added a short intro text stagger, phone panel rise, desktop opposing panel entrances, numbered-marker scale, verified-detail stagger, and response-line extension.
+- Kept the full form together as one reveal group so visitors are not forced to wait for individual inputs.
+- Kept Shopify validation errors and success feedback immediate, preserved no-JavaScript visibility, disabled motion for reduced-motion visitors, and added reinitialization after Theme Editor section reloads.
+- Added a small submit-arrow hover movement without shifting the button itself.
 
 Validation:
 
@@ -386,7 +432,7 @@ Validation:
 - `templates/page.contact.json`: valid JSON.
 - `locales/en.default.json`: valid JSON.
 - Contact page CSS: no CSS Grid layout used.
-- Contact page JavaScript: none required.
+- Contact page JavaScript: one-time `IntersectionObserver` reveal only; no form behavior was replaced.
 
 Theme Editor setup:
 
@@ -429,6 +475,11 @@ Implemented:
 - Removed the starter section's CSS Grid and implemented the screen with Flexbox.
 - Removed the unsupported long range-setting unit from the description word-limit schema so Shopify theme upload accepts the section.
 - Added source comments explaining Shopify collection data, sorting, category navigation, product-card rendering, pagination, empty states, responsive Flexbox layouts, and Theme Editor settings.
+- Added independent one-time reveals for the catalog hero, category rail, sorting toolbar, every product card, empty state, and pagination.
+- Added a hero text stagger, active-category scale, toolbar rise, grouped card content rise, subtle product-image settling, empty-state sequence, and pagination reveal.
+- Kept each product's title, description, variants, availability, price, and action together as one readable animation group.
+- Added card delays that reset for every two-card tablet row and three-card desktop row, preventing large collections from creating long animation queues.
+- Preserved phone card-by-card viewport reveals, no-JavaScript visibility, reduced-motion behavior, and Theme Editor section reinitialization.
 
 Validation:
 
@@ -437,7 +488,7 @@ Validation:
 - `templates/collection.json`: valid JSON data.
 - `locales/en.default.json`: valid JSON.
 - Catalog CSS: no CSS Grid layout used.
-- Catalog JavaScript: none required.
+- Catalog JavaScript: one-time `IntersectionObserver` reveal only; sorting and pagination remain native links/forms.
 
 Theme Editor setup:
 
@@ -451,7 +502,7 @@ Theme Editor setup:
 
 ## Product Detail Page
 
-Status: Complete - replaces the Shopify product page starter.
+Status: Complete - supports Shopify product ordering and replaces the product page starter.
 
 Source:
 
@@ -461,41 +512,105 @@ Source:
 
 Implemented:
 
-- Rebuilt `sections/product.liquid` as a mobile-first informational menu-item detail page.
+- Rebuilt `sections/product.liquid` as a mobile-first, order-enabled menu-item detail page.
 - Added a native horizontally scrollable media gallery on phones and an editorial Flexbox gallery on desktop.
 - Supports Shopify images, video, external video, and product-model media without a carousel library.
 - Added a desktop media/information split with a sticky information panel.
-- Added live Shopify product title, description, price or price range, availability, vendor, and product type.
+- Added live Shopify product title, description, selected-variant price, availability, vendor, and product type.
 - Added one approved badge using `custom.menu_badge`, with supported tag fallbacks.
 - Added explicit variant names, prices, and availability through the reusable `price-variants` snippet.
+- Added a documented `product-order-form` snippet with Shopify's native product form.
+- Added a real purchasable variant selector, quantity stepper, add-to-cart button, and persistent cart link.
+- Placed ordering controls directly after price and availability so they appear before long product descriptions.
+- Added live selected-variant price, availability, sold-out state, and add-button updates.
+- Added progressively enhanced asynchronous cart submission with loading, success, and safe error feedback.
+- Preserved Shopify's normal product-form submission when Fetch or JavaScript is unavailable.
+- Added a live cart-count update and a `cart:updated` event for future header or cart-drawer integration.
+- Added an **Enable add to cart** Theme Editor control and optional approved fulfillment note.
 - Added optional verified `custom.dietary_note` output.
 - Added configurable menu and contact actions.
 - Added a Shopify-generated placeholder when no product media exists.
 - Added Shopify product structured data for product SEO.
 - Wrapped product structured data in a JSON-LD script so it remains machine-readable without appearing as storefront text.
 - Added source comments explaining the product data setup, badge priority, media loading, pricing, variants, metafields, responsive layout, SEO data, and Theme Editor schema.
-- Removed the starter add-to-cart, quantity, accelerated-checkout, and payment controls because online ordering remains outside the approved MVP scope.
+- Kept accelerated-checkout and payment buttons out of the product section; checkout continues through Shopify's existing cart.
 - Added fixed product UI labels to `locales/en.default.json`.
-- Used Flexbox-only component CSS and no JavaScript.
+- Added independent one-time reveals for the breadcrumb, product media, and information groups.
+- Added subtle media settling, phone content rise, and desktop opposing-column motion while excluding purchase controls from reveal delays.
+- Preserved no-JavaScript visibility, reduced-motion behavior, and Theme Editor section reinitialization.
+- Used Flexbox-only component CSS and lightweight JavaScript for ordering enhancement and reveal behavior.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 50 theme files inspected with no offenses.
+- Result: 51 theme files inspected with no offenses.
 - `templates/product.json`: valid JSON data.
 - `locales/en.default.json`: valid JSON data.
 - Product page CSS: no CSS Grid layout used.
-- Product page JavaScript: none required.
-- Starter product purchase and payment controls: removed.
+- Product page JavaScript: progressive product-form enhancement and one-time `IntersectionObserver` reveals.
+- Native no-JavaScript product submission: preserved.
+- Accelerated-checkout and direct payment controls: intentionally omitted.
 
 Theme Editor setup:
 
 1. Open a Shopify product in the Theme Editor and select **Product details**.
-2. Confirm the badge, type, variant, dietary-note, and action visibility settings.
-3. Assign the full-menu destination if it should differ from `/collections/all`.
-4. Assign the Contact page to enable **Ask about this item**.
-5. Populate product media, description, type, variants, prices, and availability in Shopify Products.
-6. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
+2. Keep **Enable add to cart** active only when the store is ready to accept orders.
+3. Add approved pickup, delivery, or shipping language under **Fulfillment note** after operations are confirmed.
+4. Confirm the badge, type, variant price guide, dietary-note, and action visibility settings.
+5. Assign the full-menu destination if it should differ from `/collections/all`.
+6. Assign the Contact page to enable **Ask about this item**.
+7. Populate product media, description, type, variants, prices, inventory, and availability in Shopify Products.
+8. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
+9. Test available, unavailable, multi-variant, and multi-quantity additions before launch.
+
+## Cart Page
+
+Status: Complete - replaces the Shopify cart starter with the branded ordering review screen.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated cart screenshot was supplied, so the page extends the approved dark, editorial product and form system.
+
+Implemented:
+
+- Replaced the unstyled table with a semantic mobile-first Shopify cart.
+- Added a large branded page heading, live item count, and an intentional empty-cart state.
+- Added responsive product media, product links, selected variants, selling plans, and public line-item properties.
+- Added Shopify unit prices, original/final line prices, line-item discounts, cart-level discounts, and the live subtotal.
+- Added accessible quantity steppers backed by native `updates[]` inputs and a visible **Update cart** submission.
+- Added direct remove links with product-specific accessible names.
+- Preserved Shopify's native cart update and checkout submissions without intercepting the form.
+- Added a mobile stacked layout and an asymmetric desktop Flexbox split with a sticky order summary.
+- Added a persistent continue-shopping action with an All products fallback.
+- Added an optional merchant-controlled order-note field that is disabled by default.
+- Added editable summary, empty-state, checkout, and approved fulfillment messaging without exposing arbitrary colors or layout controls.
+- Added a visually distinct dirty-cart state and screen-reader reminder when quantities or the order note change.
+- Added independent one-time reveals for the introduction, product rows, summary, and empty state.
+- Added capped desktop row delays, subtle image settling, a mobile summary rise, and desktop summary entrance from the right.
+- Kept update, remove, quantity, and checkout controls native and immediately usable.
+- Preserved visible content without JavaScript, reduced-motion support, and Theme Editor section reinitialization.
+- Used Flexbox for all mobile and desktop cart composition; no CSS Grid or external cart library was added.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 51 theme files inspected with no offenses.
+- `templates/cart.json`: valid JSON data.
+- `locales/en.default.json`: valid JSON data.
+- Cart JavaScript syntax: passed.
+- Cart CSS: no CSS Grid layout used.
+- Native no-JavaScript update and checkout form: preserved.
+
+Theme Editor setup:
+
+1. Open the cart template in the Shopify Theme Editor and select **Cart**.
+2. Add only approved fulfillment messaging for pickup, delivery, shipping, timing, service area, or fees.
+3. Keep **Show order note field** disabled until staff approves supported customer requests and help text.
+4. Confirm the summary, checkout note, empty-state copy, and continue-shopping destination.
+5. Test empty, single-item, multi-item, discounted, multi-variant, and long-title carts.
+6. Confirm Shopify payments, taxes, fulfillment, inventory, notifications, refunds, and cancellation procedures before launch.
 
 ## Next Work
 

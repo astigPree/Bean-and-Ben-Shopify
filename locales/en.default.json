@@ -26,7 +26,22 @@
     "checkout": "Checkout",
     "title": "Cart",
     "update": "Update",
-    "remove": "Remove"
+    "updating": "Updating...",
+    "remove": "Remove",
+    "remove_item": "Remove {{ title }}",
+    "item_count": {
+      "one": "{{ count }} item",
+      "other": "{{ count }} items"
+    },
+    "variant": "Option",
+    "unit_price": "Unit price",
+    "quantity": "Quantity",
+    "quantity_for": "Quantity for {{ title }}",
+    "decrease_quantity": "Decrease quantity for {{ title }}",
+    "increase_quantity": "Increase quantity for {{ title }}",
+    "line_total": "Line total",
+    "subtotal": "Subtotal",
+    "changes_pending": "Cart changes are ready. Select Update cart to save and recalculate totals."
   },
   "customers": {
     "login": {
@@ -100,8 +115,18 @@
     "media_gallery": "Product media",
     "swipe_gallery": "Swipe to view more images",
     "price_range": "Price range",
+    "selected_price": "Selected price",
     "available": "Available",
     "sold_out": "Sold out",
+    "variant": "Choose an option",
+    "quantity": "Quantity",
+    "decrease_quantity": "Decrease quantity",
+    "increase_quantity": "Increase quantity",
+    "add_to_cart": "Add to cart",
+    "adding_to_cart": "Adding...",
+    "added_to_cart": "Added to cart",
+    "add_error": "This item could not be added. Please try again.",
+    "view_cart": "View cart",
     "vendor": "Vendor",
     "type": "Category",
     "variant_prices": "Options and prices",

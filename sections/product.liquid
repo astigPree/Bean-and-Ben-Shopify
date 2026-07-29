@@ -8,6 +8,8 @@
   assign product_badge = product.metafields.custom.menu_badge.value
   assign dietary_note = product.metafields.custom.dietary_note.value
   assign menu_link = section.settings.menu_link
+  assign product_form_id = 'ProductForm-' | append: section.id
+  assign selected_variant = product.selected_or_first_available_variant
 
   # Use the All products collection when the merchant leaves Menu link empty.
   if menu_link == blank
@@ -37,8 +39,9 @@
   CSS later uses this class to mute the availability dot and product image.
 {% endcomment %}
 <section
-  class="product-detail full-width{% unless product.available %} is-sold-out{% endunless %}"
+  class="product-detail full-width{% unless selected_variant.available %} is-sold-out{% endunless %}"
   aria-labelledby="ProductHeading-{{ section.id }}"
+  data-product-detail
 >
   <div class="product-detail__inner">
     {% comment %}
@@ -46,7 +49,11 @@
       `aria-current` tells assistive technology which page is currently open.
     {% endcomment %}
     {% if section.settings.show_breadcrumb %}
-      <nav class="product-detail__breadcrumb" aria-label="{{ 'product.breadcrumb' | t }}">
+      <nav
+        class="product-detail__breadcrumb"
+        aria-label="{{ 'product.breadcrumb' | t }}"
+        data-product-reveal="breadcrumb"
+      >
         <a href="{{ menu_link }}">{{ section.settings.menu_button_label | escape }}</a>
         <span aria-hidden="true">/</span>
         <span aria-current="page">{{ product.title | escape }}</span>
@@ -63,7 +70,10 @@
           {% endcomment %}
           <div class="product-detail__media-list">
             {% for media in product.media %}
-              <div class="product-detail__media-item{% if forloop.first %} product-detail__media-item--lead{% endif %}">
+              <div
+                class="product-detail__media-item{% if forloop.first %} product-detail__media-item--lead{% endif %}"
+                data-product-reveal="media"
+              >
                 {% if media.media_type == 'image' %}
                   {% assign media_alt = media.alt | default: product.title %}
                   {% assign media_loading = 'lazy' %}
@@ -107,7 +117,10 @@
             <p class="product-detail__gallery-note">{{ 'product.swipe_gallery' | t }}</p>
           {% endif %}
         {% else %}
-          <div class="product-detail__media-item product-detail__media-item--lead">
+          <div
+            class="product-detail__media-item product-detail__media-item--lead"
+            data-product-reveal="media"
+          >
             {{ 'product-1' | placeholder_svg_tag: 'product-detail__media-image product-detail__media-image--placeholder' }}
           </div>
         {% endif %}
@@ -118,7 +131,7 @@
         This column reads live title, price, availability, description, vendor,
         type, variants, and metafields from the current Shopify product.
       {% endcomment %}
-      <div class="product-detail__information">
+      <div class="product-detail__information" data-product-reveal="information">
         <div class="product-detail__information-top">
           {% if section.settings.eyebrow != blank %}
             <p class="product-detail__eyebrow">{{ section.settings.eyebrow | escape }}</p>
@@ -136,28 +149,42 @@
         </h1>
 
         {% comment %}
-          A product with different variant prices shows its minimum-to-maximum
-          range. A product with one price shows a single formatted money value.
+          The selected variant price is the amount Shopify will add to cart.
+          JavaScript updates this value when the option selector changes.
         {% endcomment %}
         <div class="product-detail__price-status">
           <p class="product-detail__price">
-            {% if product.price_varies %}
-              <small>{{ 'product.price_range' | t }}</small>
-              <span>{{ product.price_min | money }}–{{ product.price_max | money }}</span>
-            {% else %}
-              <span>{{ product.price | money }}</span>
+            {% if product.variants.size > 1 %}
+              <small>{{ 'product.selected_price' | t }}</small>
             {% endif %}
+            <span data-product-price>{{ selected_variant.price | money }}</span>
           </p>
 
           <p class="product-detail__availability">
             <span class="product-detail__availability-dot" aria-hidden="true"></span>
-            {% if product.available %}
-              {{ 'product.available' | t }}
-            {% else %}
-              {{ 'product.sold_out' | t }}
-            {% endif %}
+            <span data-product-availability>
+              {% if selected_variant.available %}
+                {{ 'product.available' | t }}
+              {% else %}
+                {{ 'product.sold_out' | t }}
+              {% endif %}
+            </span>
           </p>
         </div>
+
+        {% comment %}
+          SHOPIFY PRODUCT FORM
+          The form is deliberately placed directly after price and availability
+          so ordering controls appear before long descriptive content.
+        {% endcomment %}
+        {% if section.settings.enable_ordering %}
+          {% render 'product-order-form',
+            product: product,
+            selected_variant: selected_variant,
+            section: section,
+            product_form_id: product_form_id
+          %}
+        {% endif %}
 
         {% if section.settings.show_vendor %}
           {% if product.vendor != blank %}
@@ -188,8 +215,8 @@
         {% endif %}
 
         {% comment %}
-          The reusable `price-variants` snippet lists variant names, prices,
-          and availability. The Theme Editor controls how many are displayed.
+          The reusable `price-variants` snippet is an optional price guide.
+          The actual purchasable option is selected in the product form above.
         {% endcomment %}
         {% if section.settings.show_variants %}
           {% if product.variants.size > 1 %}
@@ -218,8 +245,8 @@
         {% endif %}
 
         {% comment %}
-          Purchasing controls are intentionally omitted until online ordering
-          and payment operations receive explicit business approval.
+          These secondary links remain separate from ordering: visitors can
+          return to the catalog or ask a product-specific question.
         {% endcomment %}
         <div class="product-detail__actions">
           <a class="product-detail__button product-detail__button--primary" href="{{ menu_link }}">
@@ -624,6 +651,212 @@
     line-height: 1.55;
   }
 
+  /*
+   * ORDERING FORM
+   * The native Shopify form stays compact and touch-friendly on phones. Its
+   * fields use Flexbox and become a variant/quantity row on wider screens.
+   */
+  .product-detail__purchase {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 1.5rem;
+    padding-block: 1.5rem;
+    border-block:
+      1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
+  }
+
+  .product-detail__purchase h2 {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: 1.75rem;
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .product-detail__purchase-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-block-start: 1rem;
+  }
+
+  .product-detail__purchase-field {
+    display: flex;
+    width: 100%;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .product-detail__purchase-field label {
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 72%, transparent);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .product-detail__purchase-field select {
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 2.5rem 0.75rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 48%, transparent);
+    border-radius: var(--style-border-radius-inputs, 4px);
+    outline: 0;
+    color: var(--color-foreground, #f3f0e8);
+    background: var(--color-background, #050505);
+    font: inherit;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+
+  .product-detail__purchase-field select:focus-visible,
+  .product-detail__quantity input:focus-visible,
+  .product-detail__quantity button:focus-visible,
+  .product-detail__add-button:focus-visible,
+  .product-detail__view-cart:focus-visible {
+    outline: 2px solid var(--color-foreground, #f3f0e8);
+    outline-offset: 2px;
+  }
+
+  .product-detail__quantity {
+    display: flex;
+    width: 100%;
+    min-height: 3.25rem;
+  }
+
+  .product-detail__quantity button,
+  .product-detail__quantity input {
+    min-height: 3.25rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 48%, transparent);
+    border-radius: 0;
+    color: var(--color-foreground, #f3f0e8);
+    background: var(--color-background, #050505);
+    font: inherit;
+  }
+
+  .product-detail__quantity button {
+    display: inline-flex;
+    width: 3.25rem;
+    flex: 0 0 3.25rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    font-size: 1.2rem;
+  }
+
+  .product-detail__quantity input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.5rem;
+    border-inline: 0;
+    outline: 0;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .product-detail__quantity input::-webkit-inner-spin-button,
+  .product-detail__quantity input::-webkit-outer-spin-button {
+    margin: 0;
+    appearance: none;
+  }
+
+  .product-detail__fulfillment-note {
+    width: 100%;
+    flex: 0 0 100%;
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 64%, transparent);
+    font-size: 0.76rem;
+    line-height: 1.55;
+  }
+
+  .product-detail__purchase-actions {
+    display: flex;
+    width: 100%;
+    flex: 0 0 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .product-detail__add-button,
+  .product-detail__view-cart {
+    display: inline-flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid var(--color-action, #f3f0e8);
+    border-radius: var(--style-border-radius-buttons, 4px);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    line-height: 1;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 160ms ease,
+      background-color 160ms ease,
+      opacity 160ms ease;
+  }
+
+  .product-detail__add-button {
+    color: var(--color-action-text, #050505);
+    background: var(--color-action, #f3f0e8);
+    cursor: pointer;
+  }
+
+  .product-detail__add-button:disabled {
+    border-color: color-mix(in srgb, var(--color-border, #c7cbd0) 35%, transparent);
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 48%, transparent);
+    background: color-mix(in srgb, var(--color-secondary, #151515) 88%, transparent);
+    cursor: not-allowed;
+  }
+
+  .product-detail__purchase.is-submitting .product-detail__add-button {
+    cursor: wait;
+    opacity: 0.72;
+  }
+
+  .product-detail__view-cart {
+    color: var(--color-action, #f3f0e8);
+    background: transparent;
+  }
+
+  .product-detail__purchase-status,
+  .product-detail__purchase-error {
+    width: 100%;
+    flex: 0 0 100%;
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .product-detail__purchase-status {
+    min-height: 1.15rem;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 72%, transparent);
+  }
+
+  .product-detail__purchase-status.is-success {
+    color: var(--color-highlight, #d3a35a);
+  }
+
+  .product-detail__purchase-status.is-error,
+  .product-detail__purchase-error {
+    color: #ef9a9a;
+  }
+
+  .product-detail__purchase-error ul {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
   /* Calls to action stack on phones and become a row on wider screens. */
   .product-detail__actions {
     display: flex;
@@ -673,6 +906,16 @@
   }
 
   @media (hover: hover) {
+    .product-detail__add-button:not(:disabled):hover {
+      color: var(--color-action, #f3f0e8);
+      background: transparent;
+    }
+
+    .product-detail__view-cart:hover {
+      color: var(--color-action-text, #050505);
+      background: var(--color-action, #f3f0e8);
+    }
+
     .product-detail__button--primary:hover {
       color: var(--color-action, #f3f0e8);
       background: transparent;
@@ -688,8 +931,92 @@
     }
   }
 
+  /*
+   * PRODUCT REVEALS
+   * Ordering controls are intentionally excluded: they render immediately and
+   * remain usable while surrounding product information settles into place.
+   */
+  .product-detail__breadcrumb.is-animation-ready,
+  .product-detail__media-item.is-animation-ready,
+  .product-detail__media-item.is-animation-ready .product-detail__media-image,
+  .product-detail__media-item.is-animation-ready .product-detail__media-element,
+  .product-detail__information.is-animation-ready .product-detail__information-top,
+  .product-detail__information.is-animation-ready .product-detail__heading,
+  .product-detail__information.is-animation-ready .product-detail__price-status,
+  .product-detail__information.is-animation-ready .product-detail__meta-row,
+  .product-detail__information.is-animation-ready .product-detail__description,
+  .product-detail__information.is-animation-ready .product-detail__variants,
+  .product-detail__information.is-animation-ready .product-detail__dietary,
+  .product-detail__information.is-animation-ready .product-detail__note,
+  .product-detail__information.is-animation-ready .product-detail__actions {
+    transition:
+      opacity 440ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 440ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .product-detail__information.is-animation-ready .product-detail__heading {
+    transition-delay: 50ms;
+  }
+
+  .product-detail__information.is-animation-ready .product-detail__price-status {
+    transition-delay: 100ms;
+  }
+
+  .product-detail__information.is-animation-ready .product-detail__meta-row,
+  .product-detail__information.is-animation-ready .product-detail__description,
+  .product-detail__information.is-animation-ready .product-detail__variants,
+  .product-detail__information.is-animation-ready .product-detail__dietary,
+  .product-detail__information.is-animation-ready .product-detail__note {
+    transition-delay: 140ms;
+  }
+
+  .product-detail__information.is-animation-ready .product-detail__actions {
+    transition-delay: 180ms;
+  }
+
+  /* Phone content uses a small vertical offset and media settling effect. */
+  .product-detail__breadcrumb.is-animation-ready:not(.is-visible),
+  .product-detail__media-item.is-animation-ready:not(.is-visible),
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__information-top,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__heading,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__price-status,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__meta-row,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__description,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__variants,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__dietary,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__note,
+  .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__actions {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .product-detail__media-item.is-animation-ready:not(.is-visible) .product-detail__media-image,
+  .product-detail__media-item.is-animation-ready:not(.is-visible) .product-detail__media-element {
+    opacity: 0;
+    transform: scale(1.025);
+  }
+
   /* Small tablets and larger screens can place both action links side by side. */
   @media screen and (min-width: 700px) {
+    .product-detail__purchase-field {
+      width: auto;
+      flex: 1 1 15rem;
+    }
+
+    .product-detail__purchase-field--quantity {
+      max-width: 9rem;
+      flex: 0 0 9rem;
+    }
+
+    .product-detail__purchase-actions {
+      flex-direction: row;
+    }
+
+    .product-detail__add-button,
+    .product-detail__view-cart {
+      flex: 1 1 50%;
+    }
+
     .product-detail__actions {
       flex-direction: row;
     }
@@ -754,15 +1081,289 @@
     .product-detail__heading {
       font-size: clamp(4.5rem, 5.8vw, 7rem);
     }
+
+    /* Wide layouts use opposing horizontal movement for the two columns. */
+    .product-detail__media-item.is-animation-ready:not(.is-visible) {
+      transform: translateX(-1rem);
+    }
+
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__information-top,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__heading,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__price-status,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__meta-row,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__description,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__variants,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__dietary,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__note,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__actions {
+      transform: translateX(1rem);
+    }
   }
 
   /* Respect visitors who disable or reduce interface animation. */
   @media (prefers-reduced-motion: reduce) {
-    .product-detail__button {
+    .product-detail__button,
+    .product-detail__add-button,
+    .product-detail__view-cart,
+    .product-detail__breadcrumb.is-animation-ready,
+    .product-detail__media-item.is-animation-ready,
+    .product-detail__media-item.is-animation-ready .product-detail__media-image,
+    .product-detail__media-item.is-animation-ready .product-detail__media-element,
+    .product-detail__information.is-animation-ready .product-detail__information-top,
+    .product-detail__information.is-animation-ready .product-detail__heading,
+    .product-detail__information.is-animation-ready .product-detail__price-status,
+    .product-detail__information.is-animation-ready .product-detail__meta-row,
+    .product-detail__information.is-animation-ready .product-detail__description,
+    .product-detail__information.is-animation-ready .product-detail__variants,
+    .product-detail__information.is-animation-ready .product-detail__dietary,
+    .product-detail__information.is-animation-ready .product-detail__note,
+    .product-detail__information.is-animation-ready .product-detail__actions {
       transition: none;
+    }
+
+    .product-detail__breadcrumb.is-animation-ready:not(.is-visible),
+    .product-detail__media-item.is-animation-ready:not(.is-visible),
+    .product-detail__media-item.is-animation-ready:not(.is-visible) .product-detail__media-image,
+    .product-detail__media-item.is-animation-ready:not(.is-visible) .product-detail__media-element,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__information-top,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__heading,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__price-status,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__meta-row,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__description,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__variants,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__dietary,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__note,
+    .product-detail__information.is-animation-ready:not(.is-visible) .product-detail__actions {
+      opacity: 1;
+      transform: none;
     }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const sectionSelector = '[data-product-detail]';
+    const revealSelector = '[data-product-reveal]';
+
+    const collectMatches = (scope, selector) => {
+      const matches = [];
+
+      if (scope.matches && scope.matches(selector)) {
+        matches.push(scope);
+      }
+
+      if (scope.querySelectorAll) {
+        matches.push(...scope.querySelectorAll(selector));
+      }
+
+      return matches;
+    };
+
+    /*
+     * Adds live variant, quantity, and add-to-cart behavior. The listener only
+     * prevents native submission when Fetch and FormData are both available.
+     */
+    const initializeProductOrdering = (section) => {
+      if (section.dataset.productOrderingReady === 'true') return;
+
+      section.dataset.productOrderingReady = 'true';
+
+      const purchase = section.querySelector('[data-product-purchase]');
+      if (!purchase) return;
+
+      const form = purchase.querySelector('.product-detail__purchase-form');
+      const variantSelect = purchase.querySelector('[data-product-variant]');
+      const quantityInput = purchase.querySelector('[data-product-quantity]');
+      const addButton = purchase.querySelector('[data-add-to-cart]');
+      const addButtonLabel = purchase.querySelector('[data-add-to-cart-label]');
+      const price = section.querySelector('[data-product-price]');
+      const availability = section.querySelector('[data-product-availability]');
+      const status = purchase.querySelector('[data-product-status]');
+
+      if (!form || !quantityInput || !addButton || !addButtonLabel || !status) return;
+
+      let resetButtonTimer;
+      let currentVariantAvailable = !section.classList.contains('is-sold-out');
+
+      const normalizeQuantity = () => {
+        const minimum = Number.parseInt(quantityInput.min, 10) || 1;
+        const maximum = Number.parseInt(quantityInput.max, 10);
+        let quantity = Number.parseInt(quantityInput.value, 10);
+
+        if (!Number.isFinite(quantity)) quantity = minimum;
+        quantity = Math.max(minimum, quantity);
+
+        if (Number.isFinite(maximum)) {
+          quantity = Math.min(maximum, quantity);
+        }
+
+        quantityInput.value = quantity;
+        return quantity;
+      };
+
+      const clearStatus = () => {
+        status.textContent = '';
+        status.classList.remove('is-success', 'is-error');
+      };
+
+      const restoreAddButton = () => {
+        purchase.classList.remove('is-submitting');
+        addButton.disabled = !currentVariantAvailable;
+        addButtonLabel.textContent = currentVariantAvailable
+          ? purchase.dataset.addText
+          : purchase.dataset.soldOutText;
+      };
+
+      const updateSelectedVariant = () => {
+        if (!variantSelect) return;
+
+        const selectedOption = variantSelect.options[variantSelect.selectedIndex];
+        if (!selectedOption) return;
+
+        currentVariantAvailable = selectedOption.dataset.available === 'true';
+
+        if (price) {
+          price.textContent = selectedOption.dataset.price;
+        }
+
+        if (availability) {
+          availability.textContent = currentVariantAvailable
+            ? purchase.dataset.availableText
+            : purchase.dataset.soldOutText;
+        }
+
+        section.classList.toggle('is-sold-out', !currentVariantAvailable);
+        clearTimeout(resetButtonTimer);
+        clearStatus();
+        restoreAddButton();
+      };
+
+      if (variantSelect) {
+        variantSelect.addEventListener('change', updateSelectedVariant);
+      }
+
+      purchase.querySelectorAll('[data-quantity-change]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const change = Number.parseInt(button.dataset.quantityChange, 10) || 0;
+          quantityInput.value = normalizeQuantity() + change;
+          normalizeQuantity();
+        });
+      });
+
+      quantityInput.addEventListener('change', normalizeQuantity);
+
+      form.addEventListener('submit', async (event) => {
+        if (!('fetch' in window) || !('FormData' in window)) return;
+        if (!currentVariantAvailable) return;
+
+        event.preventDefault();
+        clearTimeout(resetButtonTimer);
+        clearStatus();
+
+        const addedQuantity = normalizeQuantity();
+        purchase.classList.add('is-submitting');
+        addButton.disabled = true;
+        addButtonLabel.textContent = purchase.dataset.addingText;
+
+        try {
+          const response = await fetch(purchase.dataset.cartAddUrl, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new FormData(form),
+            credentials: 'same-origin',
+          });
+          const responseData = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(responseData.description || responseData.message || purchase.dataset.errorText);
+          }
+
+          document.querySelectorAll('[data-cart-count]').forEach((cartCount) => {
+            const currentCount = Number.parseInt(cartCount.textContent, 10) || 0;
+            cartCount.textContent = currentCount + addedQuantity;
+          });
+
+          addButtonLabel.textContent = purchase.dataset.addedText;
+          status.textContent = purchase.dataset.addedText;
+          status.classList.add('is-success');
+
+          document.dispatchEvent(
+            new CustomEvent('cart:updated', {
+              detail: {
+                item: responseData,
+                quantity: addedQuantity,
+              },
+            })
+          );
+
+          resetButtonTimer = window.setTimeout(restoreAddButton, 1200);
+        } catch (error) {
+          status.textContent = error.message || purchase.dataset.errorText;
+          status.classList.add('is-error');
+          restoreAddButton();
+        }
+      });
+    };
+
+    /*
+     * Breadcrumb, media, and information are observed independently. Purchase
+     * controls are not reveal targets and therefore never wait for animation.
+     */
+    const prepareProductReveals = (scope = document) => {
+      collectMatches(scope, revealSelector).forEach((group) => {
+        if (group.dataset.productAnimationReady === 'true') return;
+
+        group.dataset.productAnimationReady = 'true';
+        group.classList.add('is-animation-ready');
+
+        const revealGroup = () => {
+          group.classList.add('is-visible');
+        };
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+          revealGroup();
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+
+            revealGroup();
+            observer.disconnect();
+          },
+          {
+            threshold: 0.06,
+            rootMargin: '0px 0px -4% 0px',
+          }
+        );
+
+        requestAnimationFrame(() => observer.observe(group));
+      });
+    };
+
+    const initializeProductPage = (scope = document) => {
+      collectMatches(scope, sectionSelector).forEach(initializeProductOrdering);
+      prepareProductReveals(scope);
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => initializeProductPage(), { once: true });
+    } else {
+      initializeProductPage();
+    }
+
+    /* Shopify replaces the product section while merchants edit its settings. */
+    document.addEventListener('shopify:section:load', (event) => {
+      initializeProductPage(event.target);
+    });
+  })();
+{% endjavascript %}
 
 {% comment %}
   THEME EDITOR SETTINGS
@@ -811,7 +1412,7 @@
     {
       "type": "checkbox",
       "id": "show_variants",
-      "label": "Show explicit variant prices",
+      "label": "Show variant price guide",
       "default": true
     },
     {
@@ -835,6 +1436,28 @@
       "id": "product_note",
       "label": "Optional shared product note",
       "info": "Use only for verified information that applies to every product using this template."
+    },
+    {
+      "type": "header",
+      "content": "Online ordering"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_ordering",
+      "label": "Enable add to cart",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "purchase_heading",
+      "label": "Ordering heading",
+      "default": "ORDER THIS ITEM"
+    },
+    {
+      "type": "textarea",
+      "id": "fulfillment_note",
+      "label": "Fulfillment note",
+      "info": "Add only approved pickup, delivery, or shipping information. Leave blank until fulfillment rules are confirmed."
     },
     {
       "type": "header",

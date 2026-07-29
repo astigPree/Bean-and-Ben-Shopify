@@ -5,6 +5,7 @@
 
 <footer
   class="site-footer full-width"
+  data-footer-reveal
   style="
     --footer-background: {{ section.settings.background_color }};
     --footer-text: {{ section.settings.text_color }};
@@ -239,10 +240,22 @@
 {% stylesheet %}
   /* Mobile-first footer foundation. */
   .site-footer {
+    position: relative;
     width: 100%;
     color: var(--footer-text, #f4f3ef);
     background: var(--footer-background, #020202);
     padding: 3rem var(--page-margin, 1.25rem) 1.5rem;
+  }
+
+  /* This rule forms the first beat of the reveal and stays visible without JavaScript. */
+  .site-footer::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--footer-border, #555);
+    content: '';
+    pointer-events: none;
+    transform-origin: left center;
   }
 
   .site-footer__inner {
@@ -532,6 +545,85 @@
   }
 
   /*
+   * JavaScript adds is-animation-ready only after it can observe the footer.
+   * The default CSS remains visible, so the footer never disappears if
+   * JavaScript is unavailable.
+   */
+  .site-footer.is-animation-ready::before,
+  .site-footer.is-animation-ready .site-footer__brand-title,
+  .site-footer.is-animation-ready .site-footer__tagline,
+  .site-footer.is-animation-ready .site-footer__socials,
+  .site-footer.is-animation-ready .site-footer__mobile-rule,
+  .site-footer.is-animation-ready .site-footer__column,
+  .site-footer.is-animation-ready .site-footer__newsletter,
+  .site-footer.is-animation-ready .site-footer__bottom {
+    transition:
+      opacity 480ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .site-footer.is-animation-ready::before {
+    transition-delay: 0ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__brand-title {
+    transition-delay: 40ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__tagline {
+    transition-delay: 80ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__socials {
+    transition-delay: 120ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__mobile-rule {
+    transition-delay: 150ms;
+    transform-origin: center;
+  }
+
+  .site-footer.is-animation-ready .site-footer__column:nth-child(1) {
+    transition-delay: 170ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__column:nth-child(2) {
+    transition-delay: 220ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__column:nth-child(3) {
+    transition-delay: 270ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__newsletter {
+    transition-delay: 300ms;
+  }
+
+  .site-footer.is-animation-ready .site-footer__bottom {
+    transition-delay: 340ms;
+  }
+
+  /* Phone content rises in a short sequence while the social row scales in. */
+  .site-footer.is-animation-ready:not(.is-visible)::before,
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__mobile-rule {
+    transform: scaleX(0);
+  }
+
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__brand-title,
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__tagline,
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__column,
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__newsletter,
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__bottom {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .site-footer.is-animation-ready:not(.is-visible) .site-footer__socials {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.9);
+  }
+
+  /*
    * Desktop places brand, three navigation columns, and newsletter in one
    * Flexbox row to match the wide reference.
    */
@@ -646,16 +738,115 @@
     .site-footer__bottom p {
       font-size: clamp(0.64rem, 0.62vw, 0.76rem);
     }
+
+    /*
+     * On wide screens the brand and newsletter enter from opposite sides.
+     * Navigation columns keep the quieter vertical reveal between them.
+     */
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__brand-title,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__tagline {
+      transform: translateX(-1.5rem);
+    }
+
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__newsletter {
+      transform: translateX(1.5rem);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .site-footer.is-animation-ready::before,
+    .site-footer.is-animation-ready .site-footer__brand-title,
+    .site-footer.is-animation-ready .site-footer__tagline,
+    .site-footer.is-animation-ready .site-footer__socials,
+    .site-footer.is-animation-ready .site-footer__mobile-rule,
+    .site-footer.is-animation-ready .site-footer__column,
+    .site-footer.is-animation-ready .site-footer__newsletter,
+    .site-footer.is-animation-ready .site-footer__bottom,
     .site-footer__social-link,
     .site-footer__links a,
     .site-footer__newsletter-submit {
       transition: none;
     }
+
+    .site-footer.is-animation-ready:not(.is-visible)::before,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__brand-title,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__tagline,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__socials,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__mobile-rule,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__column,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__newsletter,
+    .site-footer.is-animation-ready:not(.is-visible) .site-footer__bottom {
+      opacity: 1;
+      transform: none;
+    }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const footerSelector = '[data-footer-reveal]';
+
+    /*
+     * A footer is prepared only once. A low threshold starts the sequence as
+     * its top enters the viewport, then the observer disconnects.
+     */
+    const prepareFooterReveals = (scope = document) => {
+      const footers = [];
+
+      if (scope.matches && scope.matches(footerSelector)) {
+        footers.push(scope);
+      }
+
+      if (scope.querySelectorAll) {
+        footers.push(...scope.querySelectorAll(footerSelector));
+      }
+
+      footers.forEach((footer) => {
+        if (footer.dataset.footerAnimationReady === 'true') return;
+
+        footer.dataset.footerAnimationReady = 'true';
+        footer.classList.add('is-animation-ready');
+
+        const revealFooter = () => {
+          footer.classList.add('is-visible');
+        };
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+          revealFooter();
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+
+            revealFooter();
+            observer.disconnect();
+          },
+          {
+            threshold: 0.06,
+            rootMargin: '0px 0px -4% 0px',
+          }
+        );
+
+        requestAnimationFrame(() => observer.observe(footer));
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => prepareFooterReveals(), { once: true });
+    } else {
+      prepareFooterReveals();
+    }
+
+    /* Reinitialize when Shopify reloads this section in the Theme Editor. */
+    document.addEventListener('shopify:section:load', (event) => {
+      prepareFooterReveals(event.target);
+    });
+  })();
+{% endjavascript %}
 
 {% schema %}
 {

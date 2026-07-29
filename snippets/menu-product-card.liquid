@@ -42,7 +42,10 @@
   endif
 %}
 
-<li class="menu-product-card{% unless product.available %} is-sold-out{% endunless %}">
+<li
+  class="menu-product-card{% unless product.available %} is-sold-out{% endunless %}"
+  data-catalog-reveal="card"
+>
   <article class="menu-product-card__article">
     <a class="menu-product-card__media" href="{{ product.url }}" aria-label="{{ product.title | escape }}">
       {% if product_image != blank %}
