@@ -475,6 +475,11 @@ Implemented:
 - Removed the starter section's CSS Grid and implemented the screen with Flexbox.
 - Removed the unsupported long range-setting unit from the description word-limit schema so Shopify theme upload accepts the section.
 - Added source comments explaining Shopify collection data, sorting, category navigation, product-card rendering, pagination, empty states, responsive Flexbox layouts, and Theme Editor settings.
+- Added independent one-time reveals for the catalog hero, category rail, sorting toolbar, every product card, empty state, and pagination.
+- Added a hero text stagger, active-category scale, toolbar rise, grouped card content rise, subtle product-image settling, empty-state sequence, and pagination reveal.
+- Kept each product's title, description, variants, availability, price, and action together as one readable animation group.
+- Added card delays that reset for every two-card tablet row and three-card desktop row, preventing large collections from creating long animation queues.
+- Preserved phone card-by-card viewport reveals, no-JavaScript visibility, reduced-motion behavior, and Theme Editor section reinitialization.
 
 Validation:
 
@@ -483,7 +488,7 @@ Validation:
 - `templates/collection.json`: valid JSON data.
 - `locales/en.default.json`: valid JSON.
 - Catalog CSS: no CSS Grid layout used.
-- Catalog JavaScript: none required.
+- Catalog JavaScript: one-time `IntersectionObserver` reveal only; sorting and pagination remain native links/forms.
 
 Theme Editor setup:
 
