@@ -563,9 +563,57 @@ Theme Editor setup:
 8. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
 9. Test available, unavailable, multi-variant, and multi-quantity additions before launch.
 
+## Cart Page
+
+Status: Complete - replaces the Shopify cart starter with the branded ordering review screen.
+
+Source:
+
+- `docs/project/PROJECT THEME.MD`
+- `docs/project/PROJECT DESCRIPTIONS.MD`
+- No dedicated cart screenshot was supplied, so the page extends the approved dark, editorial product and form system.
+
+Implemented:
+
+- Replaced the unstyled table with a semantic mobile-first Shopify cart.
+- Added a large branded page heading, live item count, and an intentional empty-cart state.
+- Added responsive product media, product links, selected variants, selling plans, and public line-item properties.
+- Added Shopify unit prices, original/final line prices, line-item discounts, cart-level discounts, and the live subtotal.
+- Added accessible quantity steppers backed by native `updates[]` inputs and a visible **Update cart** submission.
+- Added direct remove links with product-specific accessible names.
+- Preserved Shopify's native cart update and checkout submissions without intercepting the form.
+- Added a mobile stacked layout and an asymmetric desktop Flexbox split with a sticky order summary.
+- Added a persistent continue-shopping action with an All products fallback.
+- Added an optional merchant-controlled order-note field that is disabled by default.
+- Added editable summary, empty-state, checkout, and approved fulfillment messaging without exposing arbitrary colors or layout controls.
+- Added a visually distinct dirty-cart state and screen-reader reminder when quantities or the order note change.
+- Added independent one-time reveals for the introduction, product rows, summary, and empty state.
+- Added capped desktop row delays, subtle image settling, a mobile summary rise, and desktop summary entrance from the right.
+- Kept update, remove, quantity, and checkout controls native and immediately usable.
+- Preserved visible content without JavaScript, reduced-motion support, and Theme Editor section reinitialization.
+- Used Flexbox for all mobile and desktop cart composition; no CSS Grid or external cart library was added.
+
+Validation:
+
+- Shopify Theme Check: passed.
+- Result: 51 theme files inspected with no offenses.
+- `templates/cart.json`: valid JSON data.
+- `locales/en.default.json`: valid JSON data.
+- Cart JavaScript syntax: passed.
+- Cart CSS: no CSS Grid layout used.
+- Native no-JavaScript update and checkout form: preserved.
+
+Theme Editor setup:
+
+1. Open the cart template in the Shopify Theme Editor and select **Cart**.
+2. Add only approved fulfillment messaging for pickup, delivery, shipping, timing, service area, or fees.
+3. Keep **Show order note field** disabled until staff approves supported customer requests and help text.
+4. Confirm the summary, checkout note, empty-state copy, and continue-shopping destination.
+5. Test empty, single-item, multi-item, discounted, multi-variant, and long-title carts.
+6. Confirm Shopify payments, taxes, fulfillment, inventory, notifications, refunds, and cancellation procedures before launch.
+
 ## Next Work
 
-- Redesign the existing starter cart screen before treating the complete ordering journey as production-ready.
 - Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.
 - Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.

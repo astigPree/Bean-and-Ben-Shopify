@@ -26,7 +26,22 @@
     "checkout": "Checkout",
     "title": "Cart",
     "update": "Update",
-    "remove": "Remove"
+    "updating": "Updating...",
+    "remove": "Remove",
+    "remove_item": "Remove {{ title }}",
+    "item_count": {
+      "one": "{{ count }} item",
+      "other": "{{ count }} items"
+    },
+    "variant": "Option",
+    "unit_price": "Unit price",
+    "quantity": "Quantity",
+    "quantity_for": "Quantity for {{ title }}",
+    "decrease_quantity": "Decrease quantity for {{ title }}",
+    "increase_quantity": "Increase quantity for {{ title }}",
+    "line_total": "Line total",
+    "subtotal": "Subtotal",
+    "changes_pending": "Cart changes are ready. Select Update cart to save and recalculate totals."
   },
   "customers": {
     "login": {
