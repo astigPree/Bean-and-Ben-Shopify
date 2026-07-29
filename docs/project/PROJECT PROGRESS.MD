@@ -317,6 +317,13 @@ Implemented:
 - Added editable section, panel, text, border, and primary-button colors.
 - Added explanatory Liquid and CSS comments throughout `sections/visit-bean-ben.liquid`.
 - Used Flexbox for the panel, venue facts, actions, map fallback, and responsive desktop composition.
+- Added a one-time scroll-triggered Visit section reveal using `IntersectionObserver`.
+- Phone facts reveal top-to-bottom with scaled icons, left-moving text, rising actions, and the map appearing last.
+- Desktop information enters from the left while the uploaded or fallback map enters from the right.
+- Replaced the fixed desktop map boundary with a vertically extending divider animation.
+- Uses conditional `:nth-child()` delays so omitted venue facts do not leave gaps in the reveal sequence.
+- Added a single fallback-map marker scale entrance without continuous movement.
+- Keeps all venue and map content visible without JavaScript, bypasses motion for reduced-motion visitors, and reinitializes in the Theme Editor.
 - Connected the section after the Rooftop carousel in `templates/index.json`.
 
 Validation:
