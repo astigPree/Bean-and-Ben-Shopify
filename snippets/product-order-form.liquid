@@ -1,0 +1,133 @@
+{% doc %}
+  Renders the Shopify product form used to select a variant and add it to cart.
+
+  @param {product} product - The current Shopify product.
+  @param {variant} selected_variant - The initially selected or first available variant.
+  @param {section} section - The product section instance and its settings.
+  @param {string} product_form_id - A unique HTML ID for the product form.
+
+  @example
+  {% render 'product-order-form',
+    product: product,
+    selected_variant: product.selected_or_first_available_variant,
+    section: section,
+    product_form_id: 'ProductForm-example'
+  %}
+{% enddoc %}
+
+<div
+  class="product-detail__purchase"
+  data-product-purchase
+  data-available-text="{{ 'product.available' | t | escape }}"
+  data-sold-out-text="{{ 'product.sold_out' | t | escape }}"
+  data-add-text="{{ 'product.add_to_cart' | t | escape }}"
+  data-adding-text="{{ 'product.adding_to_cart' | t | escape }}"
+  data-added-text="{{ 'product.added_to_cart' | t | escape }}"
+  data-error-text="{{ 'product.add_error' | t | escape }}"
+  data-cart-add-url="{{ routes.cart_add_url }}.js"
+>
+  {% if section.settings.purchase_heading != blank %}
+    <h2 id="ProductPurchaseHeading-{{ section.id }}">
+      {{ section.settings.purchase_heading | escape }}
+    </h2>
+  {% endif %}
+
+  {% comment %}
+    This form works without JavaScript. The product section's script enhances
+    it with live option feedback and an in-page add-to-cart response.
+  {% endcomment %}
+  {% form 'product', product, id: product_form_id, class: 'product-detail__purchase-form' %}
+    {% if product.variants.size > 1 %}
+      <div class="product-detail__purchase-field">
+        <label for="ProductVariant-{{ section.id }}">{{ 'product.variant' | t }}</label>
+        <select id="ProductVariant-{{ section.id }}" name="id" data-product-variant>
+          {% for variant in product.variants %}
+            <option
+              value="{{ variant.id }}"
+              data-price="{{ variant.price | money | escape }}"
+              data-available="{{ variant.available }}"
+              {% if variant.id == selected_variant.id %}
+                selected
+              {% endif %}
+            >
+              {{ variant.title | escape }} - {{ variant.price | money }}
+              {% unless variant.available %}
+                - {{ 'product.sold_out' | t }}
+              {% endunless %}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+    {% else %}
+      <input type="hidden" name="id" value="{{ selected_variant.id }}">
+    {% endif %}
+
+    <div class="product-detail__purchase-field product-detail__purchase-field--quantity">
+      <label for="ProductQuantity-{{ section.id }}">{{ 'product.quantity' | t }}</label>
+      <div class="product-detail__quantity">
+        <button
+          type="button"
+          data-quantity-change="-1"
+          aria-label="{{ 'product.decrease_quantity' | t | escape }}"
+        >
+          <span aria-hidden="true">&minus;</span>
+        </button>
+        <input
+          id="ProductQuantity-{{ section.id }}"
+          type="number"
+          name="quantity"
+          value="1"
+          min="1"
+          inputmode="numeric"
+          data-product-quantity
+        >
+        <button
+          type="button"
+          data-quantity-change="1"
+          aria-label="{{ 'product.increase_quantity' | t | escape }}"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+      </div>
+    </div>
+
+    {% if section.settings.fulfillment_note != blank %}
+      <p class="product-detail__fulfillment-note">
+        {{ section.settings.fulfillment_note | escape }}
+      </p>
+    {% endif %}
+
+    <div class="product-detail__purchase-actions">
+      <button
+        class="product-detail__add-button"
+        type="submit"
+        name="add"
+        data-add-to-cart
+        {% unless selected_variant.available %}
+          disabled
+        {% endunless %}
+      >
+        <span data-add-to-cart-label>
+          {% if selected_variant.available %}
+            {{ 'product.add_to_cart' | t }}
+          {% else %}
+            {{ 'product.sold_out' | t }}
+          {% endif %}
+        </span>
+      </button>
+
+      <a class="product-detail__view-cart" href="{{ routes.cart_url }}">
+        {{ 'product.view_cart' | t }}
+        (<span data-cart-count>{{ cart.item_count }}</span>)
+      </a>
+    </div>
+
+    {% if form.errors %}
+      <div class="product-detail__purchase-error" role="alert">
+        {{ form.errors | default_errors }}
+      </div>
+    {% endif %}
+
+    <p class="product-detail__purchase-status" role="status" aria-live="polite" data-product-status></p>
+  {% endform %}
+</div>

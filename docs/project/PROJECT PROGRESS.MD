@@ -502,7 +502,7 @@ Theme Editor setup:
 
 ## Product Detail Page
 
-Status: Complete - replaces the Shopify product page starter.
+Status: Complete - supports Shopify product ordering and replaces the product page starter.
 
 Source:
 
@@ -512,44 +512,60 @@ Source:
 
 Implemented:
 
-- Rebuilt `sections/product.liquid` as a mobile-first informational menu-item detail page.
+- Rebuilt `sections/product.liquid` as a mobile-first, order-enabled menu-item detail page.
 - Added a native horizontally scrollable media gallery on phones and an editorial Flexbox gallery on desktop.
 - Supports Shopify images, video, external video, and product-model media without a carousel library.
 - Added a desktop media/information split with a sticky information panel.
-- Added live Shopify product title, description, price or price range, availability, vendor, and product type.
+- Added live Shopify product title, description, selected-variant price, availability, vendor, and product type.
 - Added one approved badge using `custom.menu_badge`, with supported tag fallbacks.
 - Added explicit variant names, prices, and availability through the reusable `price-variants` snippet.
+- Added a documented `product-order-form` snippet with Shopify's native product form.
+- Added a real purchasable variant selector, quantity stepper, add-to-cart button, and persistent cart link.
+- Placed ordering controls directly after price and availability so they appear before long product descriptions.
+- Added live selected-variant price, availability, sold-out state, and add-button updates.
+- Added progressively enhanced asynchronous cart submission with loading, success, and safe error feedback.
+- Preserved Shopify's normal product-form submission when Fetch or JavaScript is unavailable.
+- Added a live cart-count update and a `cart:updated` event for future header or cart-drawer integration.
+- Added an **Enable add to cart** Theme Editor control and optional approved fulfillment note.
 - Added optional verified `custom.dietary_note` output.
 - Added configurable menu and contact actions.
 - Added a Shopify-generated placeholder when no product media exists.
 - Added Shopify product structured data for product SEO.
 - Wrapped product structured data in a JSON-LD script so it remains machine-readable without appearing as storefront text.
 - Added source comments explaining the product data setup, badge priority, media loading, pricing, variants, metafields, responsive layout, SEO data, and Theme Editor schema.
-- Removed the starter add-to-cart, quantity, accelerated-checkout, and payment controls because online ordering remains outside the approved MVP scope.
+- Kept accelerated-checkout and payment buttons out of the product section; checkout continues through Shopify's existing cart.
 - Added fixed product UI labels to `locales/en.default.json`.
-- Used Flexbox-only component CSS and no JavaScript.
+- Added independent one-time reveals for the breadcrumb, product media, and information groups.
+- Added subtle media settling, phone content rise, and desktop opposing-column motion while excluding purchase controls from reveal delays.
+- Preserved no-JavaScript visibility, reduced-motion behavior, and Theme Editor section reinitialization.
+- Used Flexbox-only component CSS and lightweight JavaScript for ordering enhancement and reveal behavior.
 
 Validation:
 
 - Shopify Theme Check: passed.
-- Result: 50 theme files inspected with no offenses.
+- Result: 51 theme files inspected with no offenses.
 - `templates/product.json`: valid JSON data.
 - `locales/en.default.json`: valid JSON data.
 - Product page CSS: no CSS Grid layout used.
-- Product page JavaScript: none required.
-- Starter product purchase and payment controls: removed.
+- Product page JavaScript: progressive product-form enhancement and one-time `IntersectionObserver` reveals.
+- Native no-JavaScript product submission: preserved.
+- Accelerated-checkout and direct payment controls: intentionally omitted.
 
 Theme Editor setup:
 
 1. Open a Shopify product in the Theme Editor and select **Product details**.
-2. Confirm the badge, type, variant, dietary-note, and action visibility settings.
-3. Assign the full-menu destination if it should differ from `/collections/all`.
-4. Assign the Contact page to enable **Ask about this item**.
-5. Populate product media, description, type, variants, prices, and availability in Shopify Products.
-6. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
+2. Keep **Enable add to cart** active only when the store is ready to accept orders.
+3. Add approved pickup, delivery, or shipping language under **Fulfillment note** after operations are confirmed.
+4. Confirm the badge, type, variant price guide, dietary-note, and action visibility settings.
+5. Assign the full-menu destination if it should differ from `/collections/all`.
+6. Assign the Contact page to enable **Ask about this item**.
+7. Populate product media, description, type, variants, prices, inventory, and availability in Shopify Products.
+8. Optionally configure verified `custom.menu_badge` and `custom.dietary_note` metafields.
+9. Test available, unavailable, multi-variant, and multi-quantity additions before launch.
 
 ## Next Work
 
+- Redesign the existing starter cart screen before treating the complete ordering journey as production-ready.
 - Review the navigation, hero, venue information strip, featured menu, rooftop carousel, Visit Bean & Ben section, and footer using the developer-controlled Shopify preview.
 - Fine-tune dimensions only after the approved logo, hero images, real menus, verified venue facts, and real products are assigned.
 - Build the next homepage section after visual review.
