@@ -1,6 +1,6 @@
 # Bean & Ben Shopify Theme — Project Progress
 
-Last updated: July 28, 2026
+Last updated: July 29, 2026
 
 ## Workflow Constraint
 
@@ -36,6 +36,11 @@ Implemented:
 - The home-page header overlays the hero area. On other page types, it uses a normal black header so page content is not covered.
 - Added keyboard Escape handling, menu closing after link selection, reduced-motion support, and accessible navigation labels.
 - Connected header colors, borders, desktop spacing, and button radius to the global CSS variables.
+- Added a desktop-only navigation entrance that fades in while sliding down from above.
+- Disabled the navigation entrance animation when the visitor prefers reduced motion.
+- Added a phone/tablet logo and hamburger entrance that fades and settles from above.
+- Added a quick mobile drawer reveal plus automatically staggered menu links based on their Shopify navigation order.
+- Limited mobile navigation motion to opacity and transforms for reliable phone performance.
 - Added the required LiquidDoc header to `snippets/css-variables.liquid`.
 - Fixed the invalid trailing comma in `sections/header-group.json`.
 
@@ -116,6 +121,10 @@ Implemented:
 - Added independent phone and desktop image-position controls to keep the subject visible after cropping.
 - Added adjustable dark-overlay strength and minimum-height controls.
 - Used Flexbox for the content, action buttons, and scroll-cue layouts.
+- Added a desktop-only staggered hero entrance that fades the eyebrow, heading, description, and actions in from the left.
+- Disabled the hero entrance animation when the visitor prefers reduced motion.
+- Added a shorter phone/tablet hero entrance with a 20px left offset and faster staggered timing.
+- Kept hero controls interactive throughout the animation and limited movement to opacity and transforms.
 - Added clear Liquid and CSS comments inside `sections/hero-section.liquid`.
 - Connected the global display-font setting to CSS variables for the condensed hero heading.
 

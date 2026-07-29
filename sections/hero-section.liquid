@@ -319,6 +319,64 @@
   }
 
   /*
+   * Desktop hero entrance:
+   * each copy group fades and slides in from the left with a short stagger.
+   * `both` applies the hidden starting state during each animation delay.
+   */
+  @keyframes bean-ben-hero-copy-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-2.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /*
+   * Phone hero copy travels a shorter distance and completes faster than the
+   * desktop animation so the interface feels responsive on smaller screens.
+   */
+  @keyframes bean-ben-mobile-hero-copy-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-1.25rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: bean-ben-mobile-hero-copy-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .hero-section__eyebrow {
+      animation-delay: 60ms;
+    }
+
+    .hero-section__heading {
+      animation-delay: 100ms;
+    }
+
+    .hero-section__description {
+      animation-delay: 150ms;
+    }
+
+    .hero-section__actions {
+      animation-delay: 200ms;
+    }
+  }
+
+  /*
    * DESKTOP LAYOUT
    * Uses the desktop height and crop settings, widens the copy, and places both
    * actions on one Flexbox row.
@@ -386,8 +444,40 @@
     }
   }
 
+  @media screen and (min-width: 990px) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: bean-ben-hero-copy-enter 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .hero-section__eyebrow {
+      animation-delay: 180ms;
+    }
+
+    .hero-section__heading {
+      animation-delay: 260ms;
+    }
+
+    .hero-section__description {
+      animation-delay: 360ms;
+    }
+
+    .hero-section__actions {
+      animation-delay: 460ms;
+    }
+  }
+
   /* Respect visitors who request reduced interface motion. */
   @media (prefers-reduced-motion: reduce) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: none;
+    }
+
     .hero-section__button {
       transition: none;
     }
