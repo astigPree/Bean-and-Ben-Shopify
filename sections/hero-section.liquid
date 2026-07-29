@@ -1,7 +1,14 @@
+{% comment %}
+  HERO DATA SETUP
+  `section.settings` contains the values saved through this section's Theme
+  Editor controls. These assignments prepare image and link fallbacks before
+  any HTML is rendered.
+{% endcomment %}
 {% liquid
   assign desktop_background = section.settings.desktop_background
   assign mobile_background = section.settings.mobile_background
 
+  # Reuse whichever image exists when only one responsive image is uploaded.
   if desktop_background == blank
     assign desktop_background = mobile_background
   endif
@@ -10,10 +17,18 @@
     assign mobile_background = desktop_background
   endif
 
+  # Convert the whole-number percentage into the decimal value CSS opacity needs.
   assign overlay_opacity = section.settings.overlay_opacity | divided_by: 100.0
+
+  # Send the main button to All products when no custom destination is selected.
   assign primary_link = section.settings.primary_link | default: routes.all_products_collection_url
 %}
 
+{% comment %}
+  Single-purpose settings are passed into CSS custom properties. This keeps the
+  stylesheet reusable while allowing height, crop position, and overlay strength
+  to change independently for each section instance.
+{% endcomment %}
 <section
   class="hero-section full-width"
   style="
@@ -27,6 +42,8 @@
   {% comment %}
     The background is decorative, so its alt text is intentionally empty.
     If only one image is uploaded, it is reused for both phone and desktop sizes.
+    `<picture>` selects the desktop source at 750px; Shopify creates each
+    requested image width and the browser downloads an appropriate file.
   {% endcomment %}
   {% if mobile_background != blank %}
     <picture class="hero-section__media">
@@ -62,6 +79,11 @@
   {% endcomment %}
   <div class="hero-section__overlay" aria-hidden="true"></div>
 
+  {% comment %}
+    HERO CONTENT
+    Empty Theme Editor fields are not rendered. `escape` protects text output,
+    while `newline_to_br` preserves intentional line breaks in textarea settings.
+  {% endcomment %}
   <div class="hero-section__inner">
     <div class="hero-section__content">
       {% if section.settings.eyebrow != blank %}
@@ -78,6 +100,10 @@
         <p class="hero-section__description">{{ section.settings.description | escape | newline_to_br }}</p>
       {% endif %}
 
+      {% comment %}
+        The primary action always has a safe destination. The secondary action
+        becomes a real link only after the merchant assigns its destination.
+      {% endcomment %}
       <div class="hero-section__actions">
         {% if section.settings.primary_label != blank %}
           <a class="hero-section__button hero-section__button--primary" href="{{ primary_link }}">
@@ -133,6 +159,7 @@
     isolation: isolate;
   }
 
+  /* Absolute media and overlay layers sit behind content through negative z-index values. */
   .hero-section__media {
     position: absolute;
     z-index: -3;
@@ -206,6 +233,7 @@
     line-height: 1.65;
   }
 
+  /* Buttons stack for phone-width touch targets and switch to a row on desktop. */
   .hero-section__actions {
     display: flex;
     width: min(100%, 23rem);
@@ -290,6 +318,69 @@
     }
   }
 
+  /*
+   * Desktop hero entrance:
+   * each copy group fades and slides in from the left with a short stagger.
+   * `both` applies the hidden starting state during each animation delay.
+   */
+  @keyframes bean-ben-hero-copy-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-2.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /*
+   * Phone hero copy travels a shorter distance and completes faster than the
+   * desktop animation so the interface feels responsive on smaller screens.
+   */
+  @keyframes bean-ben-mobile-hero-copy-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-1.25rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media screen and (max-width: 989px) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: bean-ben-mobile-hero-copy-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .hero-section__eyebrow {
+      animation-delay: 60ms;
+    }
+
+    .hero-section__heading {
+      animation-delay: 100ms;
+    }
+
+    .hero-section__description {
+      animation-delay: 150ms;
+    }
+
+    .hero-section__actions {
+      animation-delay: 200ms;
+    }
+  }
+
+  /*
+   * DESKTOP LAYOUT
+   * Uses the desktop height and crop settings, widens the copy, and places both
+   * actions on one Flexbox row.
+   */
   @media screen and (min-width: 750px) {
     .hero-section {
       min-height: max(100svh, var(--hero-desktop-min-height));
@@ -353,13 +444,51 @@
     }
   }
 
+  @media screen and (min-width: 990px) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: bean-ben-hero-copy-enter 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    .hero-section__eyebrow {
+      animation-delay: 180ms;
+    }
+
+    .hero-section__heading {
+      animation-delay: 260ms;
+    }
+
+    .hero-section__description {
+      animation-delay: 360ms;
+    }
+
+    .hero-section__actions {
+      animation-delay: 460ms;
+    }
+  }
+
+  /* Respect visitors who request reduced interface motion. */
   @media (prefers-reduced-motion: reduce) {
+    .hero-section__eyebrow,
+    .hero-section__heading,
+    .hero-section__description,
+    .hero-section__actions {
+      animation: none;
+    }
+
     .hero-section__button {
       transition: none;
     }
   }
 {% endstylesheet %}
 
+{% comment %}
+  THEME EDITOR SETTINGS
+  This strict JSON schema defines every setting shown for the Hero section.
+  Comments cannot be placed inside the JSON object itself.
+{% endcomment %}
 {% schema %}
 {
   "name": "Hero section",

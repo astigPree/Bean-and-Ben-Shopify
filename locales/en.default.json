@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "404": {
     "title": "404",
@@ -17,7 +26,22 @@
     "checkout": "Checkout",
     "title": "Cart",
     "update": "Update",
-    "remove": "Remove"
+    "updating": "Updating...",
+    "remove": "Remove",
+    "remove_item": "Remove {{ title }}",
+    "item_count": {
+      "one": "{{ count }} item",
+      "other": "{{ count }} items"
+    },
+    "variant": "Option",
+    "unit_price": "Unit price",
+    "quantity": "Quantity",
+    "quantity_for": "Quantity for {{ title }}",
+    "decrease_quantity": "Decrease quantity for {{ title }}",
+    "increase_quantity": "Increase quantity for {{ title }}",
+    "line_total": "Line total",
+    "subtotal": "Subtotal",
+    "changes_pending": "Cart changes are ready. Select Update cart to save and recalculate totals."
   },
   "customers": {
     "login": {
@@ -30,6 +54,50 @@
   "collections": {
     "title": "Collections"
   },
+  "contact": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "inquiry_type": "Inquiry type",
+    "choose_topic": "Choose a topic",
+    "topic_general": "General question",
+    "topic_coworking": "Coworking",
+    "topic_gaming": "Gaming",
+    "topic_events": "Events or group visit",
+    "topic_menu": "Menu or allergen question",
+    "topic_other": "Other",
+    "subject": "Subject",
+    "message": "Message",
+    "required_note": "Fields marked * are required.",
+    "error_heading": "Please correct the following:",
+    "direct_email": "Direct email",
+    "visit": "Visit",
+    "hours": "Hours",
+    "social": "Social"
+  },
+  "catalog": {
+    "categories": "Product categories",
+    "product_count": {
+      "one": "{{ count }} product",
+      "other": "{{ count }} products"
+    },
+    "showing_collection": "Showing {{ title }}",
+    "sort_by": "Sort by",
+    "apply": "Apply",
+    "sold_out": "Sold out",
+    "price_range": "Price range",
+    "view_item": "View item",
+    "variant_prices": "Variant prices",
+    "unavailable": "Unavailable",
+    "more_variants": {
+      "one": "{{ count }} more variant available",
+      "other": "{{ count }} more variants available"
+    },
+    "pagination": "Catalog pagination",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{ number }}"
+  },
   "gift_card": {
     "add_to_apple_wallet": "Add to Apple Wallet",
     "card": "Gift card",
@@ -41,6 +109,28 @@
     "title": "This shop is private",
     "password": "Password",
     "enter": "Enter"
+  },
+  "product": {
+    "breadcrumb": "Product breadcrumb",
+    "media_gallery": "Product media",
+    "swipe_gallery": "Swipe to view more images",
+    "price_range": "Price range",
+    "selected_price": "Selected price",
+    "available": "Available",
+    "sold_out": "Sold out",
+    "variant": "Choose an option",
+    "quantity": "Quantity",
+    "decrease_quantity": "Decrease quantity",
+    "increase_quantity": "Increase quantity",
+    "add_to_cart": "Add to cart",
+    "adding_to_cart": "Adding...",
+    "added_to_cart": "Added to cart",
+    "add_error": "This item could not be added. Please try again.",
+    "view_cart": "View cart",
+    "vendor": "Vendor",
+    "type": "Category",
+    "variant_prices": "Options and prices",
+    "dietary_note": "Dietary or allergen information"
   },
   "search": {
     "title": "Search",

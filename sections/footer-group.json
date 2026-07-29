@@ -14,8 +14,30 @@
     "footer": {
       "type": "footer",
       "settings": {
-        "menu": "",
-        "show_payment_icons": true
+        "brand_title": "BEAN & BEN",
+        "tagline": "SPECIALTY COFFEE. ROOFTOP MOMENTS.",
+        "facebook_url": "",
+        "instagram_url": "",
+        "tiktok_url": "",
+        "explore_heading": "EXPLORE",
+        "explore_menu": "",
+        "experiences_heading": "EXPERIENCES",
+        "experiences_menu": "",
+        "information_heading": "INFORMATION",
+        "information_menu": "",
+        "newsletter_heading": "STAY IN THE LOOP",
+        "newsletter_text": "GET THE LATEST BREWS, OFFERS, AND EVENTS.",
+        "newsletter_placeholder": "ENTER YOUR EMAIL",
+        "newsletter_success_text": "You're on the list. Watch your inbox for what comes next.",
+        "copyright_name": "BEAN & BEN",
+        "copyright_text": "ALL RIGHTS RESERVED.",
+        "location_text": "SILANG, CAVITE / PHILIPPINES",
+        "background_color": "#020202",
+        "text_color": "#F4F3EF",
+        "muted_text_color": "#B8B8B8",
+        "border_color": "#555555",
+        "button_background": "#F4F3EF",
+        "button_text_color": "#050505"
       }
     }
   },

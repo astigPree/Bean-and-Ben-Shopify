@@ -4,6 +4,7 @@
   @param {product} product - Product selected from Shopify.
   @param {string} card_style - Either "lead" or "supporting".
   @param {string} [lead_badge] - Optional fallback badge for the lead product.
+  @param {number} [reveal_delay] - Optional entrance delay in milliseconds.
 
   @example
   {% render 'featured-menu-card', product: product, card_style: 'lead', lead_badge: 'Signature' %}
@@ -33,7 +34,10 @@
   endif
 %}
 
-<article class="featured-menu__card featured-menu__card--{{ card_style }}{% unless product.available %} is-sold-out{% endunless %}">
+<article
+  class="featured-menu__card featured-menu__card--{{ card_style }}{% unless product.available %} is-sold-out{% endunless %}"
+  style="--featured-card-delay: {{ reveal_delay | default: 0 }}ms;"
+>
   <a class="featured-menu__card-link" href="{{ product.url }}">
     <div class="featured-menu__media">
       {% if product_image != blank %}

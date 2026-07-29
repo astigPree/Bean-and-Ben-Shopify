@@ -1,47 +1,1198 @@
 {% comment %}
-  This section is used in the collection template to render collection page
-  listing all products within a collection.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
+  COLLECTION DATA SETUP
+  Shopify automatically provides the `collection` object on collection pages.
+  It contains the current collection's title, description, products, sorting
+  options, and URLs. Section settings come from the Theme Editor schema below.
 {% endcomment %}
+{% liquid
+  assign catalog_heading = section.settings.heading
+  assign current_sort = collection.sort_by | default: collection.default_sort_by
 
-<h1>{{ collection.title }}</h1>
+  # Use the live Shopify collection title when no heading override is entered.
+  if catalog_heading == blank
+    assign catalog_heading = collection.title
+  endif
+%}
 
-<div class="collection-products">
-  {% paginate collection.products by 20 %}
-    {% for product in collection.products %}
-      <div class="collection-product">
-        {% if product.featured_image %}
-          {% render 'image',
-            class: 'collection-product__image',
-            image: product.featured_image,
-            url: product.url,
-            width: 400,
-            height: 400,
-            crop: 'center'
-          %}
+{% comment %}
+  `section.id` makes the heading ID unique if this section is used more than
+  once. `aria-labelledby` connects that heading to the complete catalog region.
+{% endcomment %}
+<section
+  class="catalog-page full-width"
+  aria-labelledby="CatalogHeading-{{ section.id }}"
+>
+  <div class="catalog-page__inner">
+    {% comment %}
+      CATALOG INTRODUCTION
+      The eyebrow and heading override are editable in the Theme Editor.
+      The description and product count come from the current collection.
+    {% endcomment %}
+    <header class="catalog-page__hero" data-catalog-reveal="hero">
+      <div class="catalog-page__hero-copy">
+        {% if section.settings.eyebrow != blank %}
+          <p class="catalog-page__eyebrow">{{ section.settings.eyebrow | escape }}</p>
         {% endif %}
-        <div class="collection-product__content">
-          <p>{{ product.title | escape | link_to: product.url }}</p>
-          <p>{{ product.price | money }}</p>
-        </div>
-      </div>
-    {% endfor %}
 
-    {{ paginate | default_pagination }}
-  {% endpaginate %}
-</div>
+        <h1 id="CatalogHeading-{{ section.id }}" class="catalog-page__heading">
+          {{ catalog_heading | escape }}
+        </h1>
+      </div>
+
+      <div class="catalog-page__hero-support">
+        {% comment %}
+          Collection descriptions are managed in Shopify Admin and may contain
+          rich text, so the container uses the shared `rte` class.
+        {% endcomment %}
+        {% if section.settings.show_collection_description %}
+          {% if collection.description != blank %}
+            <div class="catalog-page__description rte">
+              {{ collection.description }}
+            </div>
+          {% endif %}
+        {% endif %}
+
+        <p class="catalog-page__count">
+          {{ 'catalog.product_count' | t: count: collection.products_count }}
+        </p>
+      </div>
+    </header>
+
+    {% comment %}
+      Categories are Shopify collections selected by the merchant. This keeps
+      category names and destinations editable without hard-coded URLs.
+    {% endcomment %}
+    <nav
+      class="catalog-page__categories"
+      aria-label="{{ 'catalog.categories' | t }}"
+      data-catalog-reveal="categories"
+    >
+      {% if section.settings.show_all_products_link %}
+        <a
+          class="catalog-page__category{% if collection.handle == 'all' %} is-current{% endif %}"
+          href="{{ routes.all_products_collection_url }}"
+          {% if collection.handle == 'all' %}
+            aria-current="page"
+          {% endif %}
+        >
+          {{ section.settings.all_products_label | escape }}
+        </a>
+      {% endif %}
+
+      {% for category in section.settings.category_collections %}
+        <a
+          class="catalog-page__category{% if category.handle == collection.handle %} is-current{% endif %}"
+          href="{{ category.url }}"
+          {% if category.handle == collection.handle %}
+            aria-current="page"
+          {% endif %}
+        >
+          {{ category.title | escape }}
+        </a>
+      {% endfor %}
+    </nav>
+
+    {% comment %}
+      The toolbar confirms which collection is open and provides Shopify's
+      built-in sorting choices when more than one choice is available.
+    {% endcomment %}
+    <div class="catalog-page__toolbar" data-catalog-reveal="toolbar">
+      <p>{{ 'catalog.showing_collection' | t: title: collection.title }}</p>
+
+      {% if collection.sort_options.size > 1 %}
+        {% comment %}
+          Sorting uses a normal GET form and submit button, so the catalog
+          remains fully usable without JavaScript.
+        {% endcomment %}
+        <form class="catalog-page__sort" action="{{ collection.url }}" method="get">
+          <label for="CatalogSort-{{ section.id }}">{{ 'catalog.sort_by' | t }}</label>
+          <select id="CatalogSort-{{ section.id }}" name="sort_by">
+            {% for option in collection.sort_options %}
+              <option
+                value="{{ option.value | escape }}"
+                {% if option.value == current_sort %}
+                  selected
+                {% endif %}
+              >
+                {{ option.name | escape }}
+              </option>
+            {% endfor %}
+          </select>
+          <button type="submit">{{ 'catalog.apply' | t }}</button>
+        </form>
+      {% endif %}
+    </div>
+
+    {% comment %}
+      PAGINATED PRODUCT LIST
+      Shopify limits large Liquid loops, so `paginate` divides the collection
+      into the number of products selected in the Theme Editor.
+    {% endcomment %}
+    {% paginate collection.products by section.settings.products_per_page %}
+      {% if collection.products_count > 0 %}
+        <ul class="catalog-page__products" role="list">
+          {% for product in collection.products %}
+            {% comment %}
+              Each product is delegated to the reusable menu-product-card
+              snippet. These arguments decide which optional details it shows.
+            {% endcomment %}
+            {% render 'menu-product-card',
+              product: product,
+              show_description: section.settings.show_description,
+              description_words: section.settings.description_words,
+              show_badge: section.settings.show_badges,
+              show_variants: section.settings.show_variants,
+              variant_limit: section.settings.variant_limit
+            %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        {% comment %}
+          Keep empty collections visually complete. The extra instruction is
+          visible only inside the Theme Editor, never to storefront visitors.
+        {% endcomment %}
+        <div class="catalog-page__empty" data-catalog-reveal="empty">
+          <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+            <path d="M23 33h46l-4 45H28l-5-45Z"></path>
+            <path d="M20 24h52M30 17h32M37 50h22M40 61h16"></path>
+          </svg>
+          <h2>{{ section.settings.empty_heading | escape }}</h2>
+          <p>{{ section.settings.empty_text | escape }}</p>
+
+          {% if request.design_mode %}
+            <small>Add products to this Shopify collection to populate the catalog.</small>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% comment %}
+        Pagination is rendered only when the collection needs multiple pages.
+        Shopify supplies previous, next, current, and numbered page URLs.
+      {% endcomment %}
+      {% if paginate.pages > 1 %}
+        <nav
+          class="catalog-page__pagination"
+          aria-label="{{ 'catalog.pagination' | t }}"
+          data-catalog-reveal="pagination"
+        >
+          {% if paginate.previous %}
+            <a class="catalog-page__pagination-arrow" href="{{ paginate.previous.url }}">
+              <span aria-hidden="true">←</span>
+              {{ 'catalog.previous' | t }}
+            </a>
+          {% endif %}
+
+          <div class="catalog-page__pagination-pages">
+            {% for part in paginate.parts %}
+              {% if part.is_link %}
+                <a href="{{ part.url }}" aria-label="{{ 'catalog.page' | t: number: part.title }}">
+                  {{ part.title }}
+                </a>
+              {% else %}
+                {% if part.title == paginate.current_page %}
+                  <span class="is-current" aria-current="page">{{ part.title }}</span>
+                {% else %}
+                  <span>{{ part.title }}</span>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if paginate.next %}
+            <a class="catalog-page__pagination-arrow" href="{{ paginate.next.url }}">
+              {{ 'catalog.next' | t }}
+              <span aria-hidden="true">→</span>
+            </a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    {% endpaginate %}
+  </div>
+</section>
 
 {% stylesheet %}
-  .collection-products {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  /* Mobile-first full catalog foundation. */
+  .catalog-page {
+    width: 100%;
+    color: var(--color-foreground, #f3f0e8);
+    background:
+      radial-gradient(circle at 82% 5%, rgb(211 163 90 / 7%), transparent 24rem),
+      var(--color-background, #050505);
+  }
+
+  /*
+   * CONTENT WIDTH
+   * Centers the catalog and reuses the global page-width and spacing settings.
+   */
+  .catalog-page__inner {
+    display: flex;
+    width: min(100%, var(--page-width, 90rem));
+    flex-direction: column;
+    gap: 2rem;
+    margin-inline: auto;
+    padding:
+      var(--mobile-section-spacing, 4.5rem)
+      var(--page-margin, 1.25rem);
+  }
+
+  .catalog-page__hero,
+  .catalog-page__hero-copy,
+  .catalog-page__hero-support {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .catalog-page__hero {
+    gap: 1.5rem;
+    padding-block-end: 2rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 38%, transparent);
+  }
+
+  .catalog-page__eyebrow {
+    margin: 0;
+    color: var(--color-highlight, #d3a35a);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__heading {
+    max-width: 12ch;
+    margin: 0.9rem 0 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(4rem, 18vw, 6.5rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.01em;
+    line-height: 0.88;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__hero-support {
+    gap: 1rem;
+  }
+
+  .catalog-page__description {
+    max-width: 45rem;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 78%, transparent);
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .catalog-page__description > :first-child {
+    margin-block-start: 0;
+  }
+
+  .catalog-page__description > :last-child {
+    margin-block-end: 0;
+  }
+
+  .catalog-page__count {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 58%, transparent);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  /*
+   * Phone categories scroll horizontally. This keeps every category readable
+   * instead of compressing long names into an unusable row.
+   */
+  .catalog-page__categories {
+    display: flex;
+    width: calc(100% + (var(--page-margin, 1.25rem) * 2));
+    align-self: center;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-inline: var(--page-margin, 1.25rem);
+    padding-block-end: 0.35rem;
+    scrollbar-width: thin;
+  }
+
+  .catalog-page__category {
+    display: inline-flex;
+    min-height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 42%, transparent);
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition:
+      color 160ms ease,
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .catalog-page__category.is-current {
+    border-color: var(--color-action, #f3f0e8);
+    color: var(--color-action-text, #050505);
+    background: var(--color-action, #f3f0e8);
+  }
+
+  /*
+   * SORTING TOOLBAR
+   * The controls stack on small phones. A later breakpoint places them in one
+   * row when enough horizontal space is available.
+   */
+  .catalog-page__toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
+    background: var(--color-secondary, #151515);
+  }
+
+  .catalog-page__toolbar > p {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 72%, transparent);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__sort {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .catalog-page__sort label {
+    width: 100%;
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__sort select,
+  .catalog-page__sort button {
+    min-height: 2.75rem;
+    border-radius: var(--style-border-radius-inputs, 4px);
+    font: inherit;
+    font-size: 0.8rem;
+  }
+
+  .catalog-page__sort select {
+    min-width: 0;
+    flex: 1 1 12rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 50%, transparent);
+    color: var(--color-foreground, #f3f0e8);
+    background: var(--color-background, #050505);
+  }
+
+  .catalog-page__sort button {
+    flex: 0 0 auto;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--color-action, #f3f0e8);
+    color: var(--color-action-text, #050505);
+    background: var(--color-action, #f3f0e8);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * PRODUCT GRID
+   * Flexbox starts with one card per row. Tablet and desktop breakpoints below
+   * change the cards to two and then three columns.
+   */
+  .catalog-page__products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .menu-product-card {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  /*
+   * PRODUCT CARD
+   * These selectors style HTML rendered by snippets/menu-product-card.liquid.
+   * Keeping the reusable card markup in a snippet avoids duplicating it.
+   */
+  .menu-product-card__article {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 36%, transparent);
+    border-radius: var(--style-border-radius-cards, 4px);
+    background: var(--color-secondary, #151515);
+  }
+
+  .menu-product-card__media {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+    background: var(--color-background, #050505);
+    aspect-ratio: 4 / 3;
+  }
+
+  .menu-product-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition:
+      opacity 430ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 430ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .menu-product-card__image--placeholder {
+    padding: 15%;
+    color: color-mix(in srgb, var(--color-highlight, #d3a35a) 45%, transparent);
+    fill: currentColor;
+  }
+
+  .menu-product-card__badge {
+    position: absolute;
+    inset-block-start: 0.85rem;
+    inset-inline-start: 0.85rem;
+    display: inline-flex;
+    min-height: 2rem;
+    align-items: center;
+    padding: 0.4rem 0.65rem;
+    border: 1px solid var(--color-highlight, #d3a35a);
+    color: var(--color-highlight, #d3a35a);
+    background: rgb(5 5 5 / 88%);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .menu-product-card__content {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    padding: 1.15rem;
+  }
+
+  .menu-product-card__title {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: clamp(1.9rem, 9vw, 2.75rem);
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.025em;
+    line-height: 0.98;
+    text-transform: uppercase;
+  }
+
+  .menu-product-card__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .menu-product-card__description {
+    margin: 0.8rem 0 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 72%, transparent);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .menu-product-card__dietary {
+    margin: 0.75rem 0 0;
+    color: var(--color-highlight, #d3a35a);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: 1.45;
+    text-transform: uppercase;
+  }
+
+  .menu-product-card__variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-block-start: 1rem;
+  }
+
+  .menu-product-card__variant {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 82%, transparent);
+    font-size: 0.68rem;
+    line-height: 1.3;
+  }
+
+  .menu-product-card__variant strong {
+    color: var(--color-highlight, #d3a35a);
+    font-weight: 700;
+  }
+
+  .menu-product-card__variant.is-unavailable {
+    opacity: 0.48;
+    text-decoration: line-through;
+  }
+
+  .menu-product-card__variant-more {
+    width: 100%;
+    margin: 0.15rem 0 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 55%, transparent);
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .menu-product-card__visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .menu-product-card__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block-start: auto;
+    padding-block-start: 1.25rem;
+  }
+
+  .menu-product-card__price {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
+    color: var(--color-highlight, #d3a35a);
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .menu-product-card__price small {
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 58%, transparent);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .menu-product-card__link {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 45%, transparent);
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .menu-product-card.is-sold-out .menu-product-card__image {
+    filter: grayscale(0.7);
+  }
+
+  /* Empty-state styles prevent collections without products from looking broken. */
+  .catalog-page__empty {
+    display: flex;
+    min-height: 26rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 36%, transparent);
+    text-align: center;
+    background: var(--color-secondary, #151515);
+  }
+
+  .catalog-page__empty svg {
+    width: 5rem;
+    color: var(--color-highlight, #d3a35a);
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  .catalog-page__empty h2 {
+    margin: 0;
+    font-family: var(--font-display--family, Impact, sans-serif);
+    font-size: 2.5rem;
+    font-style: var(--font-display--style, normal);
+    font-weight: var(--font-display--weight, 400);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__empty p,
+  .catalog-page__empty small {
+    max-width: 32rem;
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  .catalog-page__empty small {
+    color: var(--color-highlight, #d3a35a);
+  }
+
+  /* Pagination links are sized as comfortable touch targets on mobile devices. */
+  .catalog-page__pagination,
+  .catalog-page__pagination-pages {
+    display: flex;
+    align-items: center;
+  }
+
+  .catalog-page__pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-block-start: 1rem;
+    padding-block-start: 2rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
+  }
+
+  .catalog-page__pagination-pages {
+    gap: 0.35rem;
+  }
+
+  .catalog-page__pagination a,
+  .catalog-page__pagination span {
+    display: inline-flex;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.78rem;
+    text-decoration: none;
+  }
+
+  .catalog-page__pagination-pages a,
+  .catalog-page__pagination-pages span {
+    border: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 32%, transparent);
+  }
+
+  .catalog-page__pagination .is-current {
+    color: var(--color-action-text, #050505);
+    background: var(--color-action, #f3f0e8);
+  }
+
+  .catalog-page__pagination-arrow {
+    gap: 0.45rem;
+    padding-inline: 0.65rem;
+    text-transform: uppercase;
+  }
+
+  @media (hover: hover) {
+    .catalog-page__category:hover,
+    .menu-product-card__link:hover {
+      border-color: var(--color-foreground, #f3f0e8);
+    }
+
+    .catalog-page__category:hover {
+      color: var(--color-action-text, #050505);
+      background: var(--color-action, #f3f0e8);
+    }
+
+    .menu-product-card__media:hover .menu-product-card__image {
+      transform: scale(1.02);
+    }
+
+    .menu-product-card__title a:hover {
+      color: var(--color-highlight, #d3a35a);
+    }
+  }
+
+  /*
+   * CATALOG REVEALS
+   * Every group remains visible by default. JavaScript adds the ready class
+   * only when the browser can observe and reveal the group safely.
+   */
+  .catalog-page__hero.is-animation-ready .catalog-page__eyebrow,
+  .catalog-page__hero.is-animation-ready .catalog-page__heading,
+  .catalog-page__hero.is-animation-ready .catalog-page__hero-support,
+  .catalog-page__categories.is-animation-ready,
+  .catalog-page__toolbar.is-animation-ready,
+  .menu-product-card.is-animation-ready,
+  .menu-product-card.is-animation-ready .menu-product-card__image,
+  .menu-product-card.is-animation-ready .menu-product-card__content,
+  .catalog-page__empty.is-animation-ready svg,
+  .catalog-page__empty.is-animation-ready h2,
+  .catalog-page__empty.is-animation-ready p,
+  .catalog-page__empty.is-animation-ready small,
+  .catalog-page__pagination.is-animation-ready {
+    transition:
+      opacity 430ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 430ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .catalog-page__hero.is-animation-ready .catalog-page__heading {
+    transition-delay: 50ms;
+  }
+
+  .catalog-page__hero.is-animation-ready .catalog-page__hero-support {
+    transition-delay: 100ms;
+  }
+
+  .catalog-page__categories.is-animation-ready {
+    transition-delay: 80ms;
+  }
+
+  /*
+   * The current category scales with the rail while retaining the original
+   * color and border transitions used by hover and selected states.
+   */
+  .catalog-page__categories.is-animation-ready .catalog-page__category.is-current {
+    transition:
+      color 160ms ease,
+      border-color 160ms ease,
+      background-color 160ms ease,
+      opacity 430ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 430ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .catalog-page__toolbar.is-animation-ready {
+    transition-delay: 100ms;
+  }
+
+  /*
+   * Card content is one reveal unit: titles, variants, prices, availability,
+   * and the product link never animate independently from one another.
+   */
+  .menu-product-card.is-animation-ready {
+    transition-delay: var(--catalog-card-delay, 0ms);
+  }
+
+  .menu-product-card.is-animation-ready .menu-product-card__image {
+    transition-delay: 0ms;
+  }
+
+  .menu-product-card.is-animation-ready .menu-product-card__content {
+    transition-delay: 35ms;
+  }
+
+  .catalog-page__empty.is-animation-ready h2 {
+    transition-delay: 60ms;
+  }
+
+  .catalog-page__empty.is-animation-ready p {
+    transition-delay: 100ms;
+  }
+
+  .catalog-page__empty.is-animation-ready small {
+    transition-delay: 140ms;
+  }
+
+  /* Phone groups use small vertical movement to avoid obscuring products. */
+  .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__eyebrow,
+  .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__heading,
+  .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__hero-support,
+  .catalog-page__categories.is-animation-ready:not(.is-visible),
+  .catalog-page__toolbar.is-animation-ready:not(.is-visible),
+  .menu-product-card.is-animation-ready:not(.is-visible),
+  .catalog-page__pagination.is-animation-ready:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .catalog-page__categories.is-animation-ready:not(.is-visible) .catalog-page__category.is-current {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  .menu-product-card.is-animation-ready:not(.is-visible) .menu-product-card__image {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+
+  .menu-product-card.is-animation-ready:not(.is-visible) .menu-product-card__content {
+    opacity: 0;
+    transform: translateY(0.65rem);
+  }
+
+  .catalog-page__empty.is-animation-ready:not(.is-visible) svg {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  .catalog-page__empty.is-animation-ready:not(.is-visible) h2,
+  .catalog-page__empty.is-animation-ready:not(.is-visible) p,
+  .catalog-page__empty.is-animation-ready:not(.is-visible) small {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  /* Two product cards per row on larger phones and tablets. */
+  @media screen and (min-width: 620px) {
+    .catalog-page__toolbar {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .catalog-page__sort {
+      flex-wrap: nowrap;
+    }
+
+    .catalog-page__sort label {
+      width: auto;
+    }
+
+    .menu-product-card {
+      width: calc(50% - 0.5rem);
+      flex-basis: calc(50% - 0.5rem);
+    }
+
+    /*
+     * Tablet delays reset every two cards. They never increase with the total
+     * number of products in the collection.
+     */
+    .menu-product-card:nth-child(2n + 1) {
+      --catalog-card-delay: 0ms;
+    }
+
+    .menu-product-card:nth-child(2n) {
+      --catalog-card-delay: 55ms;
+    }
+  }
+
+  /*
+   * DESKTOP LAYOUT
+   * The hero becomes a split row, categories can wrap, and the catalog shows
+   * three product cards per row.
+   */
+  @media screen and (min-width: 990px) {
+    .catalog-page__inner {
+      gap: 2.5rem;
+      padding:
+        var(--desktop-section-spacing, 8.75rem)
+        var(--desktop-page-margin, 4rem);
+    }
+
+    .catalog-page__hero {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 4rem;
+      padding-block-end: 2.75rem;
+    }
+
+    .catalog-page__hero-copy {
+      width: 62%;
+      flex: 1 1 62%;
+    }
+
+    .catalog-page__hero-support {
+      width: 32%;
+      flex: 0 0 32%;
+      align-items: flex-start;
+    }
+
+    .catalog-page__heading {
+      max-width: none;
+      font-size: clamp(6rem, 8vw, 9rem);
+    }
+
+    .catalog-page__categories {
+      width: 100%;
+      align-self: auto;
+      flex-wrap: wrap;
+      overflow: visible;
+      padding: 0;
+    }
+
+    .catalog-page__toolbar {
+      padding: 0.85rem 1rem;
+    }
+
+    .menu-product-card {
+      width: calc(33.333% - 0.667rem);
+      flex-basis: calc(33.333% - 0.667rem);
+    }
+
+    /* Desktop delays reset for each three-card row. */
+    .menu-product-card:nth-child(3n + 1) {
+      --catalog-card-delay: 0ms;
+    }
+
+    .menu-product-card:nth-child(3n + 2) {
+      --catalog-card-delay: 55ms;
+    }
+
+    .menu-product-card:nth-child(3n) {
+      --catalog-card-delay: 110ms;
+    }
+
+    .menu-product-card__title {
+      font-size: clamp(2rem, 2.4vw, 2.8rem);
+    }
+
+    .catalog-page__pagination {
+      justify-content: space-between;
+    }
+  }
+
+  /* Respect visitors who request reduced interface motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .catalog-page__category,
+    .catalog-page__categories.is-animation-ready .catalog-page__category.is-current,
+    .menu-product-card__image,
+    .menu-product-card.is-animation-ready .menu-product-card__image,
+    .catalog-page__hero.is-animation-ready .catalog-page__eyebrow,
+    .catalog-page__hero.is-animation-ready .catalog-page__heading,
+    .catalog-page__hero.is-animation-ready .catalog-page__hero-support,
+    .catalog-page__categories.is-animation-ready,
+    .catalog-page__toolbar.is-animation-ready,
+    .menu-product-card.is-animation-ready,
+    .menu-product-card.is-animation-ready .menu-product-card__content,
+    .catalog-page__empty.is-animation-ready svg,
+    .catalog-page__empty.is-animation-ready h2,
+    .catalog-page__empty.is-animation-ready p,
+    .catalog-page__empty.is-animation-ready small,
+    .catalog-page__pagination.is-animation-ready {
+      transition: none;
+    }
+
+    .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__eyebrow,
+    .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__heading,
+    .catalog-page__hero.is-animation-ready:not(.is-visible) .catalog-page__hero-support,
+    .catalog-page__categories.is-animation-ready:not(.is-visible),
+    .catalog-page__categories.is-animation-ready:not(.is-visible) .catalog-page__category.is-current,
+    .catalog-page__toolbar.is-animation-ready:not(.is-visible),
+    .menu-product-card.is-animation-ready:not(.is-visible),
+    .menu-product-card.is-animation-ready:not(.is-visible) .menu-product-card__image,
+    .menu-product-card.is-animation-ready:not(.is-visible) .menu-product-card__content,
+    .catalog-page__empty.is-animation-ready:not(.is-visible) svg,
+    .catalog-page__empty.is-animation-ready:not(.is-visible) h2,
+    .catalog-page__empty.is-animation-ready:not(.is-visible) p,
+    .catalog-page__empty.is-animation-ready:not(.is-visible) small,
+    .catalog-page__pagination.is-animation-ready:not(.is-visible) {
+      opacity: 1;
+      transform: none;
+    }
   }
 {% endstylesheet %}
 
+{% javascript %}
+  (() => {
+    const revealSelector = '[data-catalog-reveal]';
+
+    /*
+     * Each card is observed independently, so phone visitors see products
+     * reveal as they scroll instead of waiting for one page-wide sequence.
+     */
+    const prepareCatalogReveals = (scope = document) => {
+      const groups = [];
+
+      if (scope.matches && scope.matches(revealSelector)) {
+        groups.push(scope);
+      }
+
+      if (scope.querySelectorAll) {
+        groups.push(...scope.querySelectorAll(revealSelector));
+      }
+
+      groups.forEach((group) => {
+        if (group.dataset.catalogAnimationReady === 'true') return;
+
+        group.dataset.catalogAnimationReady = 'true';
+        group.classList.add('is-animation-ready');
+
+        const revealGroup = () => {
+          group.classList.add('is-visible');
+        };
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+          revealGroup();
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+
+            revealGroup();
+            observer.disconnect();
+          },
+          {
+            threshold: 0.06,
+            rootMargin: '0px 0px -4% 0px',
+          }
+        );
+
+        requestAnimationFrame(() => observer.observe(group));
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => prepareCatalogReveals(), { once: true });
+    } else {
+      prepareCatalogReveals();
+    }
+
+    /* Reinitialize when Shopify reloads the catalog in the Theme Editor. */
+    document.addEventListener('shopify:section:load', (event) => {
+      prepareCatalogReveals(event.target);
+    });
+  })();
+{% endjavascript %}
+
+{% comment %}
+  THEME EDITOR SETTINGS
+  This JSON schema creates the collection section's controls in Shopify's Theme
+  Editor. It must stay valid JSON, so explanatory comments cannot go inside it.
+{% endcomment %}
 {% schema %}
 {
-  "name": "t:general.collection",
-  "settings": []
+  "name": "Product catalog",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Heading"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "FULL MENU"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading override",
+      "info": "Leave blank to use the Shopify collection title."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Categories"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_all_products_link",
+      "label": "Show All products link",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "all_products_label",
+      "label": "All products label",
+      "default": "ALL"
+    },
+    {
+      "type": "collection_list",
+      "id": "category_collections",
+      "label": "Menu categories",
+      "limit": 12,
+      "info": "Choose and order the Shopify collections shown as category navigation."
+    },
+    {
+      "type": "header",
+      "content": "Product cards"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "Products per page",
+      "min": 8,
+      "max": 24,
+      "step": 4,
+      "default": 12
+    },
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show product descriptions",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "description_words",
+      "label": "Description word limit",
+      "min": 8,
+      "max": 24,
+      "step": 4,
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "show_badges",
+      "label": "Show one product badge",
+      "default": true,
+      "info": "Uses custom.menu_badge first, then supported product tags."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variants",
+      "label": "Show variant prices",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "variant_limit",
+      "label": "Variant prices shown per product",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "header",
+      "content": "Empty state"
+    },
+    {
+      "type": "text",
+      "id": "empty_heading",
+      "label": "Heading",
+      "default": "THE MENU IS BREWING"
+    },
+    {
+      "type": "textarea",
+      "id": "empty_text",
+      "label": "Message",
+      "default": "Products added to this collection will appear here."
+    }
+  ]
 }
 {% endschema %}
