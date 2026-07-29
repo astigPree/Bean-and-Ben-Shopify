@@ -267,6 +267,13 @@ Implemented:
 - Added a branded placeholder when a gallery block exists without an uploaded image.
 - Used Flexbox for the intro, carousel track, slides, captions, controls, dots, and fallback layouts.
 - Added explanatory Liquid, CSS, and JavaScript comments in `sections/rooftop-carousel.liquid`.
+- Added a one-time scroll-triggered rooftop entrance integrated into the existing carousel observer.
+- Staged the eyebrow, heading, description, action, film rails, slides, controls, and swipe hint using opacity and vertical transforms.
+- Top and bottom film rails extend from opposite directions without interfering with native horizontal scrolling.
+- Added capped per-slide reveal delays for uploaded image blocks and the three-slide fallback state.
+- Autoplay now waits until the entrance sequence finishes and still pauses off-screen or during visitor interaction.
+- Reduced-motion visitors bypass the entrance and autoplay, while the complete carousel remains visible without JavaScript.
+- Preserved Theme Editor section reload initialization without duplicate listeners or observers.
 - Connected the section below the Featured menu in `templates/index.json`.
 
 Validation:
