@@ -13,6 +13,7 @@
     --info-divider: {{ section.settings.divider_color }};
   "
   aria-label="{{ section.settings.accessibility_label | escape }}"
+  data-venue-info-strip
 >
   {% comment %}
     Each information item is a Shopify block, so its icon, title, detail,
@@ -22,8 +23,10 @@
   {% endcomment %}
   <div class="venue-info-strip__list" role="list">
     {% for block in section.blocks %}
+      {% assign venue_reveal_delay = forloop.index0 | times: 70 %}
       <article
         class="venue-info-strip__item{% unless block.settings.show_on_mobile %} venue-info-strip__item--desktop-only{% endunless %}"
+        style="--venue-reveal-delay: {{ venue_reveal_delay }}ms;"
         role="listitem"
         {{ block.shopify_attributes }}
       >
@@ -221,6 +224,46 @@
   }
 
   /*
+   * SCROLL REVEAL ENHANCEMENT
+   * Content is visible by default. JavaScript adds `is-animation-ready` only
+   * when it can observe the section, preserving a complete no-JavaScript view.
+   */
+  .venue-info-strip.is-animation-ready .venue-info-strip__icon,
+  .venue-info-strip.is-animation-ready .venue-info-strip__content,
+  .venue-info-strip.is-animation-ready .venue-info-strip__stem {
+    transition:
+      opacity 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .venue-info-strip.is-animation-ready .venue-info-strip__icon {
+    transition-delay: var(--venue-reveal-delay, 0ms);
+  }
+
+  .venue-info-strip.is-animation-ready .venue-info-strip__content {
+    transition-delay: calc(var(--venue-reveal-delay, 0ms) + 70ms);
+  }
+
+  .venue-info-strip.is-animation-ready .venue-info-strip__stem {
+    transform-origin: center top;
+    transition-delay: calc(var(--venue-reveal-delay, 0ms) + 110ms);
+  }
+
+  .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__icon {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__content {
+    opacity: 0;
+    transform: translateX(-1rem);
+  }
+
+  .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__stem {
+    transform: scaleY(0);
+  }
+
+  /*
    * Desktop turns the same block list into a horizontal information band.
    * The icon backgrounds cover the long rule so it appears to pass behind them.
    */
@@ -245,6 +288,15 @@
       height: 1px;
       content: '';
       background: var(--info-accent, #d3a35a);
+    }
+
+    .venue-info-strip.is-animation-ready .venue-info-strip__list::before {
+      transform-origin: left center;
+      transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__list::before {
+      transform: scaleX(0);
     }
 
     .venue-info-strip__item {
@@ -291,6 +343,10 @@
       margin-block-start: 2.5rem;
     }
 
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__content {
+      transform: translateY(0.75rem);
+    }
+
     .venue-info-strip__title {
       font-size: clamp(1.8rem, 2.1vw, 2.65rem);
       line-height: 1;
@@ -301,7 +357,72 @@
       line-height: 1.4;
     }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .venue-info-strip.is-animation-ready .venue-info-strip__icon,
+    .venue-info-strip.is-animation-ready .venue-info-strip__content,
+    .venue-info-strip.is-animation-ready .venue-info-strip__stem,
+    .venue-info-strip.is-animation-ready .venue-info-strip__list::before {
+      transition: none;
+    }
+
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__icon,
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__content,
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__stem,
+    .venue-info-strip.is-animation-ready:not(.is-visible) .venue-info-strip__list::before {
+      opacity: 1;
+      transform: none;
+    }
+  }
 {% endstylesheet %}
+
+{% javascript %}
+  /*
+   * Reveal each venue strip once when it enters the viewport. The ready marker
+   * prevents duplicate observers after Shopify Theme Editor section reloads.
+   */
+  const initializeVenueInfoAnimations = (root = document) => {
+    root.querySelectorAll('[data-venue-info-strip]:not([data-animation-ready])').forEach((strip) => {
+      strip.setAttribute('data-animation-ready', '');
+      strip.classList.add('is-animation-ready');
+
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const revealStrip = () => {
+        strip.classList.add('is-visible');
+      };
+
+      if (reducedMotion || !('IntersectionObserver' in window)) {
+        revealStrip();
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries[0]?.isIntersecting) return;
+
+        revealStrip();
+        observer.disconnect();
+      }, {
+        threshold: 0.18,
+        rootMargin: '0px 0px -8% 0px',
+      });
+
+      /*
+       * Wait one frame so the browser paints the prepared starting state before
+       * an above-the-fold strip is revealed.
+       */
+      window.requestAnimationFrame(() => {
+        observer.observe(strip);
+      });
+    });
+  };
+
+  initializeVenueInfoAnimations();
+
+  document.addEventListener('shopify:section:load', (event) => {
+    initializeVenueInfoAnimations(event.target);
+  });
+{% endjavascript %}
 
 {% comment %}
   THEME EDITOR SETTINGS

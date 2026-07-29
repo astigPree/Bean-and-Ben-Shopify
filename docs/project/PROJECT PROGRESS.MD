@@ -165,6 +165,12 @@ Implemented:
 - Added editable background, text, accent, divider, and accessibility-label settings.
 - Reduced the phone and desktop icon scale by about 20% and tightened the related timeline and section spacing.
 - Added explanatory Liquid and CSS comments in `sections/venue-info-strip.liquid`.
+- Added a one-time scroll-triggered venue-information reveal using `IntersectionObserver`.
+- Phone facts reveal top-to-bottom with scaled icons, left-sliding text, and vertically extending timeline stems.
+- Desktop facts reveal left-to-right with scaled icons, rising text, and a horizontally extending timeline rule.
+- Added automatic per-block stagger timing based on the Shopify block order.
+- Kept all venue content visible without JavaScript and bypassed motion for reduced-motion visitors.
+- Reinitializes safely when Shopify reloads the section inside the Theme Editor.
 - Connected the section after the hero in `templates/index.json`.
 
 Validation:
