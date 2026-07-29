@@ -416,9 +416,14 @@ Implemented:
 - Kept public contact details blank by default so unverified information is never published.
 - Added an optional approved privacy-note setting that remains blank until compliant language is supplied.
 - Added locale strings for fixed form labels and messages in `locales/en.default.json`.
-- Used only Liquid and component CSS; no JavaScript or CSS Grid was added.
+- Used Liquid, component CSS, and a lightweight reveal observer; no CSS Grid was added.
 - Created `templates/page.contact.json`, which makes **contact** available as a Shopify page template.
 - Added source comments explaining form setup, Shopify field names, submission states, validation, verified contact details, responsive Flexbox behavior, and Theme Editor settings.
+- Added independent one-time reveals for the introduction, form panel, and contact-details panel so the long phone layout animates only when each group reaches the viewport.
+- Added a short intro text stagger, phone panel rise, desktop opposing panel entrances, numbered-marker scale, verified-detail stagger, and response-line extension.
+- Kept the full form together as one reveal group so visitors are not forced to wait for individual inputs.
+- Kept Shopify validation errors and success feedback immediate, preserved no-JavaScript visibility, disabled motion for reduced-motion visitors, and added reinitialization after Theme Editor section reloads.
+- Added a small submit-arrow hover movement without shifting the button itself.
 
 Validation:
 
@@ -427,7 +432,7 @@ Validation:
 - `templates/page.contact.json`: valid JSON.
 - `locales/en.default.json`: valid JSON.
 - Contact page CSS: no CSS Grid layout used.
-- Contact page JavaScript: none required.
+- Contact page JavaScript: one-time `IntersectionObserver` reveal only; no form behavior was replaced.
 
 Theme Editor setup:
 

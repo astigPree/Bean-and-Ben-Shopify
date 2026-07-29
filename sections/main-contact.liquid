@@ -48,7 +48,7 @@
       Most text comes from the Theme Editor. Optional `page.content` comes from
       the Shopify page record assigned to this contact template.
     {% endcomment %}
-    <header class="contact-page__intro">
+    <header class="contact-page__intro" data-contact-reveal="intro">
       {% if section.settings.eyebrow != blank %}
         <p class="contact-page__eyebrow">{{ section.settings.eyebrow | escape }}</p>
       {% endif %}
@@ -71,7 +71,7 @@
     </header>
 
     <div class="contact-page__layout">
-      <div class="contact-page__form-panel">
+      <div class="contact-page__form-panel" data-contact-reveal="form">
         <div class="contact-page__panel-heading">
           <div>
             {% if section.settings.form_heading != blank %}
@@ -234,7 +234,11 @@
         This aside displays only verified merchant-provided information. It is
         separate from the form so visitors can also contact or visit directly.
       {% endcomment %}
-      <aside class="contact-page__details" aria-labelledby="ContactDetailsHeading-{{ section.id }}">
+      <aside
+        class="contact-page__details"
+        aria-labelledby="ContactDetailsHeading-{{ section.id }}"
+        data-contact-reveal="details"
+      >
         <div class="contact-page__panel-heading">
           <div>
             {% if section.settings.details_heading != blank %}
@@ -562,6 +566,7 @@
     stroke-linecap: square;
     stroke-linejoin: miter;
     stroke-width: 1.5;
+    transition: transform 160ms ease;
   }
 
   /* Shopify validation errors and the successful-submit message share a panel style. */
@@ -678,9 +683,113 @@
       background: transparent;
     }
 
+    /* The arrow gives the submit action feedback without moving the button. */
+    .contact-page__submit:hover svg {
+      transform: translateX(0.25rem);
+    }
+
     .contact-page__detail a:hover {
       color: var(--color-highlight, #d3a35a);
     }
+  }
+
+  /*
+   * CONTACT REVEAL
+   * Content stays visible by default. JavaScript adds is-animation-ready only
+   * when IntersectionObserver can reveal each group safely.
+   */
+  .contact-page__intro.is-animation-ready .contact-page__eyebrow,
+  .contact-page__intro.is-animation-ready .contact-page__heading,
+  .contact-page__intro.is-animation-ready .contact-page__intro-text,
+  .contact-page__intro.is-animation-ready .contact-page__page-content,
+  .contact-page__form-panel.is-animation-ready,
+  .contact-page__details.is-animation-ready,
+  .contact-page__form-panel.is-animation-ready .contact-page__panel-number,
+  .contact-page__details.is-animation-ready .contact-page__panel-number,
+  .contact-page__details.is-animation-ready .contact-page__detail,
+  .contact-page__details.is-animation-ready .contact-page__editor-note,
+  .contact-page__details.is-animation-ready .contact-page__response-line,
+  .contact-page__details.is-animation-ready .contact-page__response-note p {
+    transition:
+      opacity 460ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .contact-page__intro.is-animation-ready .contact-page__heading {
+    transition-delay: 50ms;
+  }
+
+  .contact-page__intro.is-animation-ready .contact-page__intro-text,
+  .contact-page__intro.is-animation-ready .contact-page__page-content {
+    transition-delay: 100ms;
+  }
+
+  .contact-page__form-panel.is-animation-ready .contact-page__panel-number,
+  .contact-page__details.is-animation-ready .contact-page__panel-number {
+    transition-delay: 100ms;
+  }
+
+  /* Verified details rise together as a short, readable list. */
+  .contact-page__details.is-animation-ready .contact-page__detail:nth-child(1),
+  .contact-page__details.is-animation-ready .contact-page__editor-note {
+    transition-delay: 120ms;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__detail:nth-child(2) {
+    transition-delay: 160ms;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__detail:nth-child(3) {
+    transition-delay: 200ms;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__detail:nth-child(4) {
+    transition-delay: 240ms;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__detail:nth-child(5) {
+    transition-delay: 280ms;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__response-line {
+    transition-delay: 280ms;
+    transform-origin: left center;
+  }
+
+  .contact-page__details.is-animation-ready .contact-page__response-note p {
+    transition-delay: 320ms;
+  }
+
+  /* Phone groups rise as they independently enter the viewport. */
+  .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__eyebrow,
+  .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__heading,
+  .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__intro-text,
+  .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__page-content {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  .contact-page__form-panel.is-animation-ready:not(.is-visible),
+  .contact-page__details.is-animation-ready:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  .contact-page__form-panel.is-animation-ready:not(.is-visible) .contact-page__panel-number,
+  .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__panel-number {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__detail,
+  .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__editor-note,
+  .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__response-note p {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__response-line {
+    transform: scaleX(0);
   }
 
   /* Wider screens place half-width fields in two columns. */
@@ -730,15 +839,126 @@
       flex: 0 0 calc(36% - 0.5rem);
       padding: clamp(2rem, 3vw, 3rem);
     }
+
+    /* Desktop panels enter from opposite sides of the Flexbox composition. */
+    .contact-page__form-panel.is-animation-ready:not(.is-visible) {
+      transform: translateX(-1.5rem);
+    }
+
+    .contact-page__details.is-animation-ready:not(.is-visible) {
+      transform: translateX(1.5rem);
+    }
   }
 
   /* Respect visitors who request reduced interface motion. */
   @media (prefers-reduced-motion: reduce) {
-    .contact-page__submit {
+    .contact-page__submit,
+    .contact-page__submit svg,
+    .contact-page__intro.is-animation-ready .contact-page__eyebrow,
+    .contact-page__intro.is-animation-ready .contact-page__heading,
+    .contact-page__intro.is-animation-ready .contact-page__intro-text,
+    .contact-page__intro.is-animation-ready .contact-page__page-content,
+    .contact-page__form-panel.is-animation-ready,
+    .contact-page__details.is-animation-ready,
+    .contact-page__form-panel.is-animation-ready .contact-page__panel-number,
+    .contact-page__details.is-animation-ready .contact-page__panel-number,
+    .contact-page__details.is-animation-ready .contact-page__detail,
+    .contact-page__details.is-animation-ready .contact-page__editor-note,
+    .contact-page__details.is-animation-ready .contact-page__response-line,
+    .contact-page__details.is-animation-ready .contact-page__response-note p {
       transition: none;
+    }
+
+    .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__eyebrow,
+    .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__heading,
+    .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__intro-text,
+    .contact-page__intro.is-animation-ready:not(.is-visible) .contact-page__page-content,
+    .contact-page__form-panel.is-animation-ready:not(.is-visible),
+    .contact-page__details.is-animation-ready:not(.is-visible),
+    .contact-page__form-panel.is-animation-ready:not(.is-visible) .contact-page__panel-number,
+    .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__panel-number,
+    .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__detail,
+    .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__editor-note,
+    .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__response-line,
+    .contact-page__details.is-animation-ready:not(.is-visible) .contact-page__response-note p {
+      opacity: 1;
+      transform: none;
     }
   }
 {% endstylesheet %}
+
+{% javascript %}
+  (() => {
+    const revealSelector = '[data-contact-reveal]';
+
+    /*
+     * Intro, form, and details are observed independently. This matters on
+     * phones because the long form can place the details panel far off-screen.
+     */
+    const prepareContactReveals = (scope = document) => {
+      const groups = [];
+
+      if (scope.matches && scope.matches(revealSelector)) {
+        groups.push(scope);
+      }
+
+      if (scope.querySelectorAll) {
+        groups.push(...scope.querySelectorAll(revealSelector));
+      }
+
+      groups.forEach((group) => {
+        if (group.dataset.contactAnimationReady === 'true') return;
+
+        group.dataset.contactAnimationReady = 'true';
+        group.classList.add('is-animation-ready');
+
+        const revealGroup = () => {
+          group.classList.add('is-visible');
+        };
+
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const containsFormMessage = Boolean(
+          group.querySelector('.contact-page__errors, .contact-page__success')
+        );
+
+        /*
+         * Validation and success feedback must never wait for an entrance
+         * animation after Shopify returns the submitted form.
+         */
+        if (prefersReducedMotion || containsFormMessage || !('IntersectionObserver' in window)) {
+          revealGroup();
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            if (!entries.some((entry) => entry.isIntersecting)) return;
+
+            revealGroup();
+            observer.disconnect();
+          },
+          {
+            threshold: 0.06,
+            rootMargin: '0px 0px -4% 0px',
+          }
+        );
+
+        requestAnimationFrame(() => observer.observe(group));
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => prepareContactReveals(), { once: true });
+    } else {
+      prepareContactReveals();
+    }
+
+    /* Shopify replaces section markup while a merchant edits this page. */
+    document.addEventListener('shopify:section:load', (event) => {
+      prepareContactReveals(event.target);
+    });
+  })();
+{% endjavascript %}
 
 {% comment %}
   THEME EDITOR SETTINGS
