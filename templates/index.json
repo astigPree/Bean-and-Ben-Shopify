@@ -87,7 +87,6 @@
   },
   "order": [
     "hero",
-    "popup_modal",
     "venue_info",
     "featured_menu",
     "rooftop_carousel",
