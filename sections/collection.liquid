@@ -7,6 +7,7 @@
 {% liquid
   assign catalog_heading = section.settings.heading
   assign current_sort = collection.sort_by | default: collection.default_sort_by
+  assign products_per_page = section.settings.products_per_page | default: 24
 
   # Use the live Shopify collection title when no heading override is entered.
   if catalog_heading == blank
@@ -128,7 +129,7 @@
       Shopify limits large Liquid loops, so `paginate` divides the collection
       into the number of products selected in the Theme Editor.
     {% endcomment %}
-    {% paginate collection.products by section.settings.products_per_page %}
+    {% paginate collection.products by products_per_page %}
       {% if collection.products_count > 0 %}
         <ul class="catalog-page__products" role="list">
           {% for product in collection.products %}
@@ -175,35 +176,51 @@
           aria-label="{{ 'catalog.pagination' | t }}"
           data-catalog-reveal="pagination"
         >
-          {% if paginate.previous %}
-            <a class="catalog-page__pagination-arrow" href="{{ paginate.previous.url }}">
-              <span aria-hidden="true">←</span>
-              {{ 'catalog.previous' | t }}
-            </a>
-          {% endif %}
+          <p class="catalog-page__pagination-status">
+            {{ 'catalog.pagination_status' | t: current: paginate.current_page, total: paginate.pages }}
+          </p>
 
-          <div class="catalog-page__pagination-pages">
-            {% for part in paginate.parts %}
-              {% if part.is_link %}
-                <a href="{{ part.url }}" aria-label="{{ 'catalog.page' | t: number: part.title }}">
-                  {{ part.title }}
-                </a>
-              {% else %}
-                {% if part.title == paginate.current_page %}
-                  <span class="is-current" aria-current="page">{{ part.title }}</span>
+          <div class="catalog-page__pagination-controls">
+            {% if paginate.previous %}
+              <a class="catalog-page__pagination-arrow" href="{{ paginate.previous.url }}">
+                <span aria-hidden="true">&larr;</span>
+                {{ 'catalog.previous' | t }}
+              </a>
+            {% else %}
+              <span class="catalog-page__pagination-arrow is-disabled" aria-disabled="true">
+                <span aria-hidden="true">&larr;</span>
+                {{ 'catalog.previous' | t }}
+              </span>
+            {% endif %}
+
+            <div class="catalog-page__pagination-pages">
+              {% for part in paginate.parts %}
+                {% if part.is_link %}
+                  <a href="{{ part.url }}" aria-label="{{ 'catalog.page' | t: number: part.title }}">
+                    {{ part.title }}
+                  </a>
                 {% else %}
-                  <span>{{ part.title }}</span>
+                  {% if part.title == paginate.current_page %}
+                    <span class="is-current" aria-current="page">{{ part.title }}</span>
+                  {% else %}
+                    <span>{{ part.title }}</span>
+                  {% endif %}
                 {% endif %}
-              {% endif %}
-            {% endfor %}
-          </div>
+              {% endfor %}
+            </div>
 
-          {% if paginate.next %}
-            <a class="catalog-page__pagination-arrow" href="{{ paginate.next.url }}">
-              {{ 'catalog.next' | t }}
-              <span aria-hidden="true">→</span>
-            </a>
-          {% endif %}
+            {% if paginate.next %}
+              <a class="catalog-page__pagination-arrow" href="{{ paginate.next.url }}">
+                {{ 'catalog.next' | t }}
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            {% else %}
+              <span class="catalog-page__pagination-arrow is-disabled" aria-disabled="true">
+                {{ 'catalog.next' | t }}
+                <span aria-hidden="true">&rarr;</span>
+              </span>
+            {% endif %}
+          </div>
         </nav>
       {% endif %}
     {% endpaginate %}
@@ -299,25 +316,20 @@
     text-transform: uppercase;
   }
 
-  /*
-   * Phone categories scroll horizontally. This keeps every category readable
-   * instead of compressing long names into an unusable row.
-   */
+  /* Categories keep their natural width and wrap onto new rows on phones. */
   .catalog-page__categories {
     display: flex;
-    width: calc(100% + (var(--page-margin, 1.25rem) * 2));
-    align-self: center;
+    width: 100%;
+    flex-wrap: wrap;
     gap: 0.6rem;
-    overflow-x: auto;
-    padding-inline: var(--page-margin, 1.25rem);
-    padding-block-end: 0.35rem;
-    scrollbar-width: thin;
   }
 
   .catalog-page__category {
     display: inline-flex;
+    width: auto;
+    max-width: 100%;
     min-height: 2.75rem;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     align-items: center;
     justify-content: center;
     padding: 0.65rem 1rem;
@@ -325,11 +337,13 @@
     color: var(--color-foreground, #f3f0e8);
     font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    line-height: 1;
+    letter-spacing: 0;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-align: center;
     text-decoration: none;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
     transition:
       color 160ms ease,
       border-color 160ms ease,
@@ -717,29 +731,48 @@
   }
 
   /* Pagination links are sized as comfortable touch targets on mobile devices. */
-  .catalog-page__pagination,
-  .catalog-page__pagination-pages {
-    display: flex;
-    align-items: center;
-  }
-
   .catalog-page__pagination {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.85rem;
     margin-block-start: 1rem;
     padding-block-start: 2rem;
     border-top: 1px solid color-mix(in srgb, var(--color-border, #c7cbd0) 28%, transparent);
   }
 
+  .catalog-page__pagination-status {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 62%, transparent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .catalog-page__pagination-controls {
+    display: grid;
+    width: 100%;
+    max-width: 32rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: 0.75rem;
+  }
+
   .catalog-page__pagination-pages {
+    display: grid;
+    width: 100%;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: repeat(auto-fit, minmax(2.75rem, 1fr));
     gap: 0.35rem;
   }
 
-  .catalog-page__pagination a,
-  .catalog-page__pagination span {
+  .catalog-page__pagination-pages a,
+  .catalog-page__pagination-pages > span {
     display: inline-flex;
-    min-width: 2.75rem;
+    width: 100%;
+    min-width: 0;
     min-height: 2.75rem;
     align-items: center;
     justify-content: center;
@@ -759,9 +792,33 @@
   }
 
   .catalog-page__pagination-arrow {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
     gap: 0.45rem;
     padding-inline: 0.65rem;
+    color: var(--color-foreground, #f3f0e8);
+    font-size: 0.72rem;
+    text-decoration: none;
     text-transform: uppercase;
+  }
+
+  .catalog-page__pagination-controls > .catalog-page__pagination-arrow:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .catalog-page__pagination-controls > .catalog-page__pagination-arrow:last-child {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .catalog-page__pagination-arrow.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
   }
 
   @media (hover: hover) {
@@ -925,6 +982,31 @@
       width: auto;
     }
 
+    .catalog-page__pagination-controls {
+      max-width: 46rem;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.75rem;
+    }
+
+    .catalog-page__pagination-pages {
+      display: flex;
+      width: auto;
+      grid-column: 2;
+      grid-row: 1;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .catalog-page__pagination-pages a,
+    .catalog-page__pagination-pages > span {
+      width: auto;
+      min-width: 2.75rem;
+    }
+
+    .catalog-page__pagination-controls > .catalog-page__pagination-arrow:last-child {
+      grid-column: 3;
+    }
+
     .menu-product-card {
       width: calc(50% - 0.5rem);
       flex-basis: calc(50% - 0.5rem);
@@ -982,9 +1064,6 @@
 
     .catalog-page__categories {
       width: 100%;
-      align-self: auto;
-      flex-wrap: wrap;
-      overflow: visible;
       padding: 0;
     }
 
@@ -1014,9 +1093,6 @@
       font-size: 1.65rem;
     }
 
-    .catalog-page__pagination {
-      justify-content: space-between;
-    }
   }
 
   /* Respect visitors who request reduced interface motion. */
@@ -1189,9 +1265,10 @@
       "id": "products_per_page",
       "label": "Products per page",
       "min": 8,
-      "max": 24,
+      "max": 48,
       "step": 4,
-      "default": 12
+      "default": 24,
+      "info": "Collections with more products automatically show numbered pagination below the grid."
     },
     {
       "type": "checkbox",
