@@ -1,79 +1,28 @@
-{% doc %}
-  Renders a configurable newsletter modal.
-
-  The modal keeps the promotional artwork beside the form on desktop and
-  hides the artwork on mobile by default, matching the supplied reference.
-  `benefits` accepts a pipe-separated list. Set `display_mode` to `manual`
-  and add `data-bb-modal-open="your-modal-id"` to any button or link to
-  open it on demand. A fixed bottom-left trigger is rendered by default so
-  visitors can reopen the modal after closing it.
-
-  @param {boolean} [enabled] - Whether the modal is rendered. Defaults to true.
-  @param {string} [id] - A unique modal ID, also used for browser storage.
-  @param {image} [image] - Optional promotional artwork, shown on desktop.
-  @param {boolean} [image_mobile] - Whether to also show the artwork on mobile.
-  @param {string} [image_alt] - Accessible description for the artwork.
-  @param {string} [heading] - Primary modal message.
-  @param {string} [benefits] - Pipe-separated benefits, for example "Offers|New arrivals".
-  @param {string} [email_label] - Visible label for the email field.
-  @param {string} [email_placeholder] - Email field placeholder.
-  @param {string} [consent_label] - Optional marketing consent label.
-  @param {string} [button_label] - Newsletter submit label.
-  @param {string} [trigger_label] - Fixed modal reopen button label.
-  @param {string} [privacy_text] - Supporting privacy/unsubscribe text.
-  @param {string} [display_mode] - `always`, `once_per_session`, `once_per_visitor`, or `manual`.
-  @param {number} [delay] - Delay in milliseconds before automatically opening.
-  @param {color} [surface_color] - Modal background color.
-  @param {color} [text_color] - Modal text color.
-  @param {color} [accent_color] - Button, input, and checkbox accent color.
-  @param {color} [button_text_color] - Submit button text color.
-  @param {color} [overlay_color] - Page overlay color.
-  @param {color} [image_background_color] - Artwork panel background color.
-
-  @example
-  {% render 'popup-modal',
-    id: 'newsletter-signup',
-    image: settings.newsletter_modal_image,
-    heading: 'Be the first to hear about new coffees, offers, and events.',
-    benefits: 'Early access to new menu launches|Exclusive offers and events|Stories from Bean & Ben',
-    display_mode: 'once_per_visitor',
-    delay: 1200,
-    surface_color: '#fffaf6',
-    accent_color: '#6f197f'
-  %}
-{% enddoc %}
-
 {% liquid
-  assign modal_enabled = enabled
-  if modal_enabled == nil
-    assign modal_enabled = true
-  endif
-
-  assign modal_id = id | default: 'newsletter-modal' | handleize
-  assign modal_heading = heading | default: 'Be the first to hear about new coffees, offers, and events.'
-  assign modal_benefits = benefits | default: 'Early access to new menu launches|Exclusive offers and events|Stories from Bean & Ben'
+  assign modal_enabled = section.settings.enabled
+  assign modal_id = 'popup-modal-' | append: section.id
+  assign modal_image = section.settings.image
+  assign modal_heading = section.settings.heading
+  assign modal_benefits = section.settings.benefits
   assign modal_benefit_list = modal_benefits | split: '|'
-  assign modal_email_label = email_label | default: 'Email address'
-  assign modal_email_placeholder = email_placeholder | default: 'Email address'
-  assign modal_consent_label = consent_label | default: 'Yes, I’d like updates from Bean & Ben'
-  assign modal_button_label = button_label | default: 'Join the list'
-  assign modal_trigger_label = trigger_label | default: 'Join the list'
-  assign modal_privacy_text = privacy_text | default: 'No spam. Unsubscribe anytime.'
-  assign modal_display_mode = display_mode | default: 'once_per_session'
-  assign modal_delay = delay | default: 800
-  assign modal_surface_color = surface_color | default: '#fffaf9'
-  assign modal_text_color = text_color | default: '#161616'
-  assign modal_accent_color = accent_color | default: '#6f197f'
-  assign modal_button_text_color = button_text_color | default: '#ffffff'
-  assign modal_overlay_color = overlay_color | default: '#000000'
-  assign modal_image_background_color = image_background_color | default: '#f4e8f8'
-  assign modal_image_alt = image_alt | default: image.alt | default: modal_heading
+  assign modal_email_label = section.settings.email_label
+  assign modal_email_placeholder = section.settings.email_placeholder
+  assign modal_consent_label = section.settings.consent_label
+  assign modal_button_label = section.settings.button_label
+  assign modal_trigger_label = section.settings.trigger_label
+  assign modal_privacy_text = section.settings.privacy_text
+  assign modal_display_mode = section.settings.display_mode
+  assign modal_delay = section.settings.delay
+  assign modal_surface_color = section.settings.surface_color
+  assign modal_text_color = section.settings.text_color
+  assign modal_accent_color = section.settings.accent_color
+  assign modal_button_text_color = section.settings.button_text_color
+  assign modal_overlay_color = section.settings.overlay_color
+  assign modal_image_background_color = section.settings.image_background_color
+  assign modal_image_alt = section.settings.image_alt | default: modal_image.alt | default: modal_heading
   assign modal_form_id = 'NewsletterModalForm-' | append: modal_id
 
-  assign show_image_on_mobile = false
-  if image_mobile == true
-    assign show_image_on_mobile = true
-  endif
+  assign show_image_on_mobile = section.settings.show_image_on_mobile
 %}
 
 {% if modal_enabled %}
@@ -102,10 +51,10 @@
         </svg>
       </button>
 
-      {% if image != blank %}
+      {% if modal_image != blank %}
         <div class="bb-modal__image-panel{% if show_image_on_mobile %} bb-modal__image-panel--mobile{% endif %}">
           {{
-            image
+            modal_image
             | image_url: width: 1100
             | image_tag:
               widths: '480, 720, 960, 1100',
@@ -581,3 +530,48 @@
     });
   })();
 {% endjavascript %}
+
+{% schema %}
+{
+  "name": "Popup modal",
+  "settings": [
+    { "type": "checkbox", "id": "enabled", "label": "Enable modal", "default": true },
+    {
+      "type": "select",
+      "id": "display_mode",
+      "label": "When to show",
+      "options": [
+        { "value": "always", "label": "On every page load" },
+        { "value": "once_per_session", "label": "Once per browser session" },
+        { "value": "once_per_visitor", "label": "Once per visitor" },
+        { "value": "manual", "label": "Only from an external trigger" }
+      ],
+      "default": "always"
+    },
+    { "type": "range", "id": "delay", "label": "Show delay", "min": 0, "max": 9500, "step": 500, "unit": "ms", "default": 0 },
+    { "type": "header", "content": "Artwork" },
+    { "type": "image_picker", "id": "image", "label": "Promotional image", "info": "Shown beside the form on desktop." },
+    { "type": "text", "id": "image_alt", "label": "Promotional image description" },
+    { "type": "checkbox", "id": "show_image_on_mobile", "label": "Show promotional image on mobile", "default": false },
+    { "type": "header", "content": "Content" },
+    { "type": "textarea", "id": "heading", "label": "Heading", "default": "Be the first to hear about new coffees, offers, and events." },
+    { "type": "textarea", "id": "benefits", "label": "Benefits", "default": "Early access to new menu launches|Exclusive offers and events|Stories from Bean & Ben", "info": "Separate each benefit with a vertical bar (|)." },
+    { "type": "text", "id": "email_label", "label": "Email label", "default": "Email address" },
+    { "type": "text", "id": "email_placeholder", "label": "Email placeholder", "default": "Email address" },
+    { "type": "text", "id": "consent_label", "label": "Consent label", "default": "Yes, I’d like updates from Bean & Ben" },
+    { "type": "text", "id": "button_label", "label": "Submit button label", "default": "Join the list" },
+    { "type": "text", "id": "trigger_label", "label": "Fixed popup button label", "default": "Join the list", "info": "Shown bottom-left after the visitor closes the modal. Leave empty to hide it." },
+    { "type": "text", "id": "privacy_text", "label": "Privacy text", "default": "No spam. Unsubscribe anytime." },
+    { "type": "header", "content": "Colors" },
+    { "type": "color", "id": "surface_color", "label": "Modal background", "default": "#fffaf9" },
+    { "type": "color", "id": "text_color", "label": "Text", "default": "#161616" },
+    { "type": "color", "id": "accent_color", "label": "Accent and button", "default": "#6f197f" },
+    { "type": "color", "id": "button_text_color", "label": "Button text", "default": "#ffffff" },
+    { "type": "color", "id": "overlay_color", "label": "Page overlay", "default": "#000000" },
+    { "type": "color", "id": "image_background_color", "label": "Image panel background", "default": "#f4e8f8" }
+  ],
+  "presets": [
+    { "name": "Popup modal" }
+  ]
+}
+{% endschema %}

@@ -94,6 +94,7 @@
       "other": "{{ count }} more variants available"
     },
     "pagination": "Catalog pagination",
+    "pagination_status": "Page {{ current }} of {{ total }}",
     "previous": "Previous",
     "next": "Next",
     "page": "Page {{ number }}"

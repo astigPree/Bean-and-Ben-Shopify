@@ -4,6 +4,10 @@
       "type": "hero-section",
       "settings": {}
     },
+    "popup_modal": {
+      "type": "popup-modal",
+      "settings": {}
+    },
     "venue_info": {
       "type": "venue-info-strip",
       "blocks": {
@@ -87,6 +91,7 @@
   },
   "order": [
     "hero",
+    "popup_modal",
     "venue_info",
     "featured_menu",
     "rooftop_carousel",
