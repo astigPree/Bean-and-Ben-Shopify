@@ -6,8 +6,16 @@
 {% endcomment %}
 {% liquid
   assign catalog_heading = section.settings.heading
+  assign catalog_context_title = collection.current_type | default: collection.title
   assign current_sort = collection.sort_by | default: collection.default_sort_by
   assign products_per_page = section.settings.products_per_page | default: 24
+  assign all_products_is_current = false
+
+  if collection.current_type == blank
+    if collection.handle == 'all'
+      assign all_products_is_current = true
+    endif
+  endif
 
   # Use the live Shopify collection title when no heading override is entered.
   if catalog_heading == blank
@@ -60,8 +68,8 @@
     </header>
 
     {% comment %}
-      Categories are Shopify collections selected by the merchant. This keeps
-      category names and destinations editable without hard-coded URLs.
+      Product type links are generated from the Product type field assigned to
+      products in Shopify Admin. New types appear here automatically.
     {% endcomment %}
     <nav
       class="catalog-page__categories"
@@ -70,9 +78,9 @@
     >
       {% if section.settings.show_all_products_link %}
         <a
-          class="catalog-page__category{% if collection.handle == 'all' %} is-current{% endif %}"
+          class="catalog-page__category{% if all_products_is_current %} is-current{% endif %}"
           href="{{ routes.all_products_collection_url }}"
-          {% if collection.handle == 'all' %}
+          {% if all_products_is_current %}
             aria-current="page"
           {% endif %}
         >
@@ -80,15 +88,15 @@
         </a>
       {% endif %}
 
-      {% for category in section.settings.category_collections %}
+      {% for product_type in collection.all_types %}
         <a
-          class="catalog-page__category{% if category.handle == collection.handle %} is-current{% endif %}"
-          href="{{ category.url }}"
-          {% if category.handle == collection.handle %}
+          class="catalog-page__category{% if collection.current_type == product_type %} is-current{% endif %}"
+          href="{{ product_type | url_for_type }}"
+          {% if collection.current_type == product_type %}
             aria-current="page"
           {% endif %}
         >
-          {{ category.title | escape }}
+          {{ product_type | escape }}
         </a>
       {% endfor %}
     </nav>
@@ -98,7 +106,7 @@
       built-in sorting choices when more than one choice is available.
     {% endcomment %}
     <div class="catalog-page__toolbar" data-catalog-reveal="toolbar">
-      <p>{{ 'catalog.showing_collection' | t: title: collection.title }}</p>
+      <p>{{ 'catalog.showing_collection' | t: title: catalog_context_title }}</p>
 
       {% if collection.sort_options.size > 1 %}
         {% comment %}
@@ -106,6 +114,10 @@
           remains fully usable without JavaScript.
         {% endcomment %}
         <form class="catalog-page__sort" action="{{ collection.url }}" method="get">
+          {% if collection.current_type != blank %}
+            <input type="hidden" name="q" value="{{ collection.current_type | escape }}">
+          {% endif %}
+
           <label for="CatalogSort-{{ section.id }}">{{ 'catalog.sort_by' | t }}</label>
           <select id="CatalogSort-{{ section.id }}" name="sort_by">
             {% for option in collection.sort_options %}
@@ -1235,7 +1247,7 @@
     },
     {
       "type": "header",
-      "content": "Categories"
+      "content": "Product types"
     },
     {
       "type": "checkbox",
@@ -1248,13 +1260,6 @@
       "id": "all_products_label",
       "label": "All products label",
       "default": "ALL"
-    },
-    {
-      "type": "collection_list",
-      "id": "category_collections",
-      "label": "Menu categories",
-      "limit": 12,
-      "info": "Choose and order the Shopify collections shown as category navigation."
     },
     {
       "type": "header",
