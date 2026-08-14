@@ -147,6 +147,34 @@
   </div>
 </section>
 
+{% comment %} {% liquid
+  assign newsletter_modal_id = 'homepage-newsletter-modal-' | append: section.id
+%}
+
+{% render 'popup-modal',
+  enabled: section.settings.newsletter_modal_enabled,
+  id: newsletter_modal_id,
+  image: section.settings.newsletter_modal_image,
+  image_alt: section.settings.newsletter_modal_image_alt,
+  image_mobile: section.settings.newsletter_modal_show_image_on_mobile,
+  heading: section.settings.newsletter_modal_heading,
+  benefits: section.settings.newsletter_modal_benefits,
+  email_label: section.settings.newsletter_modal_email_label,
+  email_placeholder: section.settings.newsletter_modal_email_placeholder,
+  consent_label: section.settings.newsletter_modal_consent_label,
+  button_label: section.settings.newsletter_modal_button_label,
+  trigger_label: section.settings.newsletter_modal_trigger_label,
+  privacy_text: section.settings.newsletter_modal_privacy_text,
+  display_mode: section.settings.newsletter_modal_display_mode,
+  delay: section.settings.newsletter_modal_delay,
+  surface_color: section.settings.newsletter_modal_surface_color,
+  text_color: section.settings.newsletter_modal_text_color,
+  accent_color: section.settings.newsletter_modal_accent_color,
+  button_text_color: section.settings.newsletter_modal_button_text_color,
+  overlay_color: section.settings.newsletter_modal_overlay_color,
+  image_background_color: section.settings.newsletter_modal_image_background_color
+%} {% endcomment %}
+
 {% stylesheet %}
   /* Hero foundation: the header overlays this section on the home page. */
   .hero-section {
@@ -580,6 +608,145 @@
       "id": "scroll_label",
       "label": "Scroll cue text",
       "default": "Scroll to discover"
+    },
+    {
+      "type": "header",
+      "content": "Homepage newsletter modal"
+    },
+    {
+      "type": "checkbox",
+      "id": "newsletter_modal_enabled",
+      "label": "Enable modal",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "newsletter_modal_display_mode",
+      "label": "When to show",
+      "options": [
+        { "value": "once_per_session", "label": "Once per browser session" },
+        { "value": "once_per_visitor", "label": "Once per visitor" },
+        { "value": "always", "label": "On every page load" },
+        { "value": "manual", "label": "Only from a trigger" }
+      ],
+      "default": "always"
+    },
+    {
+      "type": "range",
+      "id": "newsletter_modal_delay",
+      "label": "Show delay",
+      "min": 0,
+      "max": 9500,
+      "step": 500,
+      "unit": "ms",
+      "default": 0
+    },
+    {
+      "type": "image_picker",
+      "id": "newsletter_modal_image",
+      "label": "Promotional image",
+      "info": "Shown beside the form on desktop."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_image_alt",
+      "label": "Promotional image description"
+    },
+    {
+      "type": "checkbox",
+      "id": "newsletter_modal_show_image_on_mobile",
+      "label": "Show promotional image on mobile",
+      "default": false
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_modal_heading",
+      "label": "Modal heading",
+      "default": "Be the first to hear about new coffees, offers, and events."
+    },
+    {
+      "type": "textarea",
+      "id": "newsletter_modal_benefits",
+      "label": "Modal benefits",
+      "default": "Early access to new menu launches|Exclusive offers and events|Stories from Bean & Ben",
+      "info": "Separate each benefit with a vertical bar (|)."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_email_label",
+      "label": "Email label",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_email_placeholder",
+      "label": "Email placeholder",
+      "default": "Email address"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_consent_label",
+      "label": "Consent label",
+      "default": "Yes, I’d like updates from Bean & Ben"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_button_label",
+      "label": "Modal button label",
+      "default": "Join the list"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_trigger_label",
+      "label": "Fixed popup button label",
+      "default": "Join the list",
+      "info": "Shown in the bottom-left corner after the modal is closed. Leave empty to hide it."
+    },
+    {
+      "type": "text",
+      "id": "newsletter_modal_privacy_text",
+      "label": "Modal privacy text",
+      "default": "No spam. Unsubscribe anytime."
+    },
+    {
+      "type": "header",
+      "content": "Modal colors"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_surface_color",
+      "label": "Modal background",
+      "default": "#fffaf9"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_text_color",
+      "label": "Modal text",
+      "default": "#161616"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_accent_color",
+      "label": "Modal accent and button",
+      "default": "#6f197f"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_button_text_color",
+      "label": "Modal button text",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_overlay_color",
+      "label": "Modal page overlay",
+      "default": "#000000"
+    },
+    {
+      "type": "color",
+      "id": "newsletter_modal_image_background_color",
+      "label": "Modal image panel background",
+      "default": "#f4e8f8"
     },
     {
       "type": "header",
