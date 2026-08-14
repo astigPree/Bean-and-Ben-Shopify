@@ -27,6 +27,9 @@
     "title": "Cart",
     "update": "Update",
     "updating": "Updating...",
+    "updated": "Cart updated.",
+    "note_saved": "Order note saved.",
+    "update_error": "The cart could not be updated. Please try again.",
     "remove": "Remove",
     "remove_item": "Remove {{ title }}",
     "item_count": {

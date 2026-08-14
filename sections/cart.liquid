@@ -17,8 +17,14 @@
   class="cart-page full-width"
   aria-labelledby="CartHeading-{{ section.id }}"
   data-cart-page
+  data-cart-section-id="{{ section.id }}"
+  data-cart-change-url="{{ routes.cart_change_url }}.js"
+  data-cart-update-url="{{ routes.cart_update_url }}.js"
   data-cart-changes-text="{{ 'cart.changes_pending' | t | escape }}"
   data-cart-updating-text="{{ 'cart.updating' | t | escape }}"
+  data-cart-updated-text="{{ 'cart.updated' | t | escape }}"
+  data-cart-note-saved-text="{{ 'cart.note_saved' | t | escape }}"
+  data-cart-error-text="{{ 'cart.update_error' | t | escape }}"
 >
   <div class="cart-page__inner">
     <header class="cart-page__hero" data-cart-reveal="intro">
@@ -68,7 +74,11 @@
                   endfor
                 %}
 
-                <li class="cart-page__item" data-cart-reveal="item">
+                <li
+                  class="cart-page__item"
+                  data-cart-reveal="item"
+                  data-cart-line-key="{{ item.key | escape }}"
+                >
                   <article class="cart-page__item-article">
                     <div class="cart-page__item-main">
                       <a
@@ -224,7 +234,12 @@
                 <span data-cart-update-label>{{ 'cart.update' | t }}</span>
               </button>
 
-              <p class="cart-page__visually-hidden" role="status" aria-live="polite" data-cart-change-status></p>
+              <p
+                class="cart-page__change-status cart-page__visually-hidden"
+                role="status"
+                aria-live="polite"
+                data-cart-change-status
+              ></p>
             </div>
           </div>
 
@@ -691,6 +706,29 @@
     color: var(--color-highlight, #d3a35a);
   }
 
+  .cart-page.is-ajax-enabled .cart-page__update {
+    display: none;
+  }
+
+  .cart-page.is-updating .cart-page__quantity-control,
+  .cart-page.is-updating .cart-page__remove {
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .cart-page__change-status.is-error {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    color: #ef9a9a;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    white-space: normal;
+  }
+
   .cart-page__summary {
     gap: 1.25rem;
     padding: clamp(1.25rem, 5vw, 2rem);
@@ -1079,8 +1117,9 @@
     };
 
     /*
-     * Quantity buttons enhance the native updates[] inputs. Visitors still
-     * have a visible Update cart button and the form is never intercepted.
+     * Quantity changes use Shopify's Ajax Cart API and bundled section
+     * rendering. The native form and Update button remain as a no-JavaScript
+     * fallback, so cart changes are never dependent on this enhancement.
      */
     const initializeCartForm = (page) => {
       if (page.dataset.cartFormReady === 'true') return;
@@ -1093,6 +1132,10 @@
       const updateButton = form.querySelector('[data-cart-update]');
       const updateLabel = form.querySelector('[data-cart-update-label]');
       const changeStatus = form.querySelector('[data-cart-change-status]');
+      const cartNote = form.querySelector('[name="note"]');
+      const supportsAjaxCart = 'fetch' in window && 'DOMParser' in window;
+      const quantityTimers = new WeakMap();
+      let noteSaveTimer;
 
       const normalizeQuantity = (input) => {
         const minimum = Number.parseInt(input.min, 10) || 1;
@@ -1110,11 +1153,163 @@
         return quantity;
       };
 
-      const markCartChanged = () => {
+      const markCartChangedForFallback = () => {
         form.classList.add('is-dirty');
 
         if (changeStatus) {
           changeStatus.textContent = page.dataset.cartChangesText;
+        }
+      };
+
+      if (!supportsAjaxCart) {
+        form.querySelectorAll('[data-cart-quantity-change]').forEach((button) => {
+          button.addEventListener('click', () => {
+            const control = button.closest('.cart-page__quantity-control');
+            const input = control ? control.querySelector('[data-cart-quantity]') : null;
+            if (!input) return;
+
+            const change = Number.parseInt(button.dataset.cartQuantityChange, 10) || 0;
+            input.value = normalizeQuantity(input) + change;
+            normalizeQuantity(input);
+            markCartChangedForFallback();
+          });
+        });
+
+        form.querySelectorAll('[data-cart-quantity]').forEach((input) => {
+          input.addEventListener('change', () => {
+            normalizeQuantity(input);
+            markCartChangedForFallback();
+          });
+        });
+
+        if (cartNote) {
+          cartNote.addEventListener('input', markCartChangedForFallback);
+        }
+
+        form.addEventListener('submit', (event) => {
+          if (!event.submitter || event.submitter.name !== 'update') return;
+
+          if (updateButton) updateButton.disabled = true;
+          if (updateLabel) updateLabel.textContent = page.dataset.cartUpdatingText;
+          if (changeStatus) changeStatus.textContent = '';
+        });
+
+        return;
+      }
+
+      page.classList.add('is-ajax-enabled');
+
+      const setStatus = (message, isError = false) => {
+        if (!changeStatus) return;
+
+        changeStatus.textContent = message;
+        changeStatus.classList.toggle('is-error', isError);
+      };
+
+      const setUpdating = (isUpdating) => {
+        page.classList.toggle('is-updating', isUpdating);
+
+        if (isUpdating) {
+          page.setAttribute('aria-busy', 'true');
+        } else {
+          page.removeAttribute('aria-busy');
+        }
+
+        form.querySelectorAll('[data-cart-quantity-change], [data-cart-quantity]').forEach((control) => {
+          control.disabled = isUpdating;
+        });
+      };
+
+      const publishCartUpdate = (cartData) => {
+        document.querySelectorAll('[data-cart-count]').forEach((cartCount) => {
+          cartCount.textContent = cartData.item_count;
+        });
+
+        document.dispatchEvent(new CustomEvent('cart:updated', { detail: { cart: cartData } }));
+      };
+
+      const replaceCartPage = (sectionHtml, options = {}) => {
+        const parsedDocument = new DOMParser().parseFromString(sectionHtml, 'text/html');
+        const replacement = parsedDocument.querySelector(pageSelector);
+
+        if (!replacement) {
+          throw new Error(page.dataset.cartErrorText);
+        }
+
+        if (options.noteValue !== undefined) {
+          const replacementNote = replacement.querySelector('[name="note"]');
+          if (replacementNote) replacementNote.value = options.noteValue;
+        }
+
+        page.replaceWith(replacement);
+        initializeCartForm(replacement);
+
+        const replacementStatus = replacement.querySelector('[data-cart-change-status]');
+        if (replacementStatus) replacementStatus.textContent = replacement.dataset.cartUpdatedText;
+
+        if (options.lineKey) {
+          const replacementLine = Array.from(replacement.querySelectorAll('[data-cart-line-key]')).find(
+            (line) => line.dataset.cartLineKey === options.lineKey
+          );
+
+          if (replacementLine) {
+            const focusTarget = options.quantityChange
+              ? replacementLine.querySelector(`[data-cart-quantity-change="${options.quantityChange}"]`)
+              : replacementLine.querySelector('[data-cart-quantity]');
+
+            if (focusTarget) focusTarget.focus();
+          }
+        }
+
+        return replacement;
+      };
+
+      const updateCartLine = async (input, quantity, quantityChange) => {
+        const line = input.closest('[data-cart-line-key]');
+        if (!line || page.classList.contains('is-updating')) return;
+
+        const lineKey = line.dataset.cartLineKey;
+        const previousQuantity = Number.parseInt(input.defaultValue, 10) || 1;
+        if (!lineKey || quantity === previousQuantity) return;
+
+        const noteValue = cartNote ? cartNote.value : undefined;
+        setUpdating(true);
+        setStatus(page.dataset.cartUpdatingText);
+
+        try {
+          const response = await fetch(page.dataset.cartChangeUrl, {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: JSON.stringify({
+              id: lineKey,
+              quantity,
+              sections: [page.dataset.cartSectionId],
+              sections_url: window.location.pathname,
+            }),
+            credentials: 'same-origin',
+          });
+          const responseData = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(responseData.description || responseData.message || page.dataset.cartErrorText);
+          }
+
+          const sectionHtml = responseData.sections
+            ? responseData.sections[page.dataset.cartSectionId]
+            : null;
+
+          if (!sectionHtml) throw new Error(page.dataset.cartErrorText);
+
+          publishCartUpdate(responseData);
+          replaceCartPage(sectionHtml, { lineKey, noteValue, quantityChange });
+        } catch (error) {
+          input.value = previousQuantity;
+          setUpdating(false);
+          setStatus(error.message || page.dataset.cartErrorText, true);
         }
       };
 
@@ -1126,29 +1321,63 @@
 
           const change = Number.parseInt(button.dataset.cartQuantityChange, 10) || 0;
           input.value = normalizeQuantity(input) + change;
-          normalizeQuantity(input);
-          markCartChanged();
+          const quantity = normalizeQuantity(input);
+          updateCartLine(input, quantity, String(change));
         });
       });
 
       form.querySelectorAll('[data-cart-quantity]').forEach((input) => {
+        input.addEventListener('input', () => {
+          window.clearTimeout(quantityTimers.get(input));
+          quantityTimers.set(
+            input,
+            window.setTimeout(() => {
+              updateCartLine(input, normalizeQuantity(input));
+            }, 450)
+          );
+        });
+
         input.addEventListener('change', () => {
-          normalizeQuantity(input);
-          markCartChanged();
+          window.clearTimeout(quantityTimers.get(input));
+          updateCartLine(input, normalizeQuantity(input));
         });
       });
 
-      const cartNote = form.querySelector('[name="note"]');
       if (cartNote) {
-        cartNote.addEventListener('input', markCartChanged);
+        cartNote.addEventListener('input', () => {
+          window.clearTimeout(noteSaveTimer);
+          noteSaveTimer = window.setTimeout(async () => {
+            setStatus(page.dataset.cartUpdatingText);
+
+            try {
+              const response = await fetch(page.dataset.cartUpdateUrl, {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ note: cartNote.value }),
+                credentials: 'same-origin',
+              });
+              const responseData = await response.json().catch(() => ({}));
+
+              if (!response.ok) {
+                throw new Error(responseData.description || responseData.message || page.dataset.cartErrorText);
+              }
+
+              publishCartUpdate(responseData);
+              setStatus(page.dataset.cartNoteSavedText);
+            } catch (error) {
+              setStatus(error.message || page.dataset.cartErrorText, true);
+            }
+          }, 600);
+        });
       }
 
       form.addEventListener('submit', (event) => {
-        if (!event.submitter || event.submitter.name !== 'update') return;
-
-        if (updateButton) updateButton.disabled = true;
-        if (updateLabel) updateLabel.textContent = page.dataset.cartUpdatingText;
-        if (changeStatus) changeStatus.textContent = '';
+        if (event.submitter && event.submitter.name === 'checkout') return;
+        event.preventDefault();
       });
     };
 

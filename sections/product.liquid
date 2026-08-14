@@ -807,9 +807,26 @@
   }
 
   .product-detail__add-button {
+    gap: 0.5rem;
     color: var(--color-action-text, #050505);
     background: var(--color-action, #f3f0e8);
     cursor: pointer;
+  }
+
+  .product-detail__add-button-icon {
+    display: none;
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  .product-detail__add-button.is-added {
+    border-color: var(--color-highlight, #d3a35a);
+    color: var(--color-background, #050505);
+    background: var(--color-highlight, #d3a35a);
+  }
+
+  .product-detail__add-button.is-added .product-detail__add-button-icon {
+    display: inline-block;
   }
 
   .product-detail__add-button:disabled {
@@ -817,6 +834,13 @@
     color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 48%, transparent);
     background: color-mix(in srgb, var(--color-secondary, #151515) 88%, transparent);
     cursor: not-allowed;
+  }
+
+  .product-detail__add-button.is-added:disabled {
+    border-color: var(--color-highlight, #d3a35a);
+    color: var(--color-background, #050505);
+    background: var(--color-highlight, #d3a35a);
+    cursor: default;
   }
 
   .product-detail__purchase.is-submitting .product-detail__add-button {
@@ -839,17 +863,28 @@
   }
 
   .product-detail__purchase-status {
-    min-height: 1.15rem;
-    color: color-mix(in srgb, var(--color-foreground, #f3f0e8) 72%, transparent);
-  }
-
-  .product-detail__purchase-status.is-success {
-    color: var(--color-highlight, #d3a35a);
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .product-detail__purchase-status.is-error,
   .product-detail__purchase-error {
     color: #ef9a9a;
+  }
+
+  .product-detail__purchase-status.is-error {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
   }
 
   .product-detail__purchase-error ul {
@@ -1204,10 +1239,12 @@
       const clearStatus = () => {
         status.textContent = '';
         status.classList.remove('is-success', 'is-error');
+        addButton.classList.remove('is-added');
       };
 
       const restoreAddButton = () => {
         purchase.classList.remove('is-submitting');
+        addButton.classList.remove('is-added');
         addButton.disabled = !currentVariantAvailable;
         addButtonLabel.textContent = currentVariantAvailable
           ? purchase.dataset.addText
@@ -1287,6 +1324,8 @@
           });
 
           addButtonLabel.textContent = purchase.dataset.addedText;
+          purchase.classList.remove('is-submitting');
+          addButton.classList.add('is-added');
           status.textContent = purchase.dataset.addedText;
           status.classList.add('is-success');
 
@@ -1299,7 +1338,7 @@
             })
           );
 
-          resetButtonTimer = window.setTimeout(restoreAddButton, 1200);
+          resetButtonTimer = window.setTimeout(restoreAddButton, 1800);
         } catch (error) {
           status.textContent = error.message || purchase.dataset.errorText;
           status.classList.add('is-error');
