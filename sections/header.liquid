@@ -15,6 +15,14 @@
   if mobile_menu == blank
     assign mobile_menu = section.settings.menu
   endif
+
+  assign mobile_menu_has_cart = false
+
+  for mobile_link in mobile_menu.links
+    if mobile_link.url == routes.cart_url
+      assign mobile_menu_has_cart = true
+    endif
+  endfor
 %}
 
 <header
@@ -70,7 +78,26 @@
       </ul>
     </nav>
 
-    <details class="header-drawer" scroll-lock>
+    <div class="site-header__utilities">
+      <a class="site-header__cart" href="{{ routes.cart_url }}" aria-label="{{ 'cart.title' | t | escape }}">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4H6Z"></path>
+          <path d="M3 6h18M16 10a4 4 0 0 1-8 0"></path>
+        </svg>
+        <span
+          class="site-header__cart-count"
+          data-cart-count
+          data-cart-count-badge
+          aria-hidden="true"
+          {% if cart.item_count == 0 %}
+            hidden
+          {% endif %}
+        >
+          {{ cart.item_count }}
+        </span>
+      </a>
+
+      <details class="header-drawer" scroll-lock>
       <summary class="header-drawer__toggle">
         <span class="header-drawer__label header-drawer__label--open">Open menu</span>
         <span class="header-drawer__label header-drawer__label--close">Close menu</span>
@@ -105,6 +132,27 @@
                 </a>
               </li>
             {% endfor %}
+
+            {% unless mobile_menu_has_cart %}
+              {% assign mobile_cart_delay = mobile_menu.links.size | times: 32 | plus: 70 %}
+              <li
+                class="header-drawer__item{% if request.page_type == 'cart' %} is-active{% endif %}"
+                style="--mobile-menu-delay: {{ mobile_cart_delay }}ms;"
+              >
+                <a
+                  class="header-drawer__link header-drawer__cart-link"
+                  href="{{ routes.cart_url }}"
+                  {% if request.page_type == 'cart' %}
+                    aria-current="page"
+                  {% endif %}
+                >
+                  <span>{{ 'cart.title' | t }}</span>
+                  <span class="header-drawer__cart-count" aria-hidden="true">
+                    (<span data-cart-count>{{ cart.item_count }}</span>)
+                  </span>
+                </a>
+              </li>
+            {% endunless %}
           </ul>
         </nav>
 
@@ -166,7 +214,8 @@
           {% endif %}
         </div>
       </div>
-    </details>
+      </details>
+    </div>
   </div>
 </header>
 
@@ -228,6 +277,68 @@
 
   .site-header__desktop-nav {
     display: none;
+  }
+
+  .site-header__utilities {
+    position: relative;
+    z-index: 4;
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.25rem;
+    margin-inline-start: auto;
+  }
+
+  .site-header__cart {
+    position: relative;
+    display: inline-flex;
+    width: 3rem;
+    height: 3rem;
+    flex: 0 0 3rem;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    text-decoration: none;
+    transition: color 160ms ease;
+  }
+
+  .site-header__cart svg {
+    width: 1.45rem;
+    height: 1.45rem;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+
+  .site-header__cart-count {
+    position: absolute;
+    inset-block-start: 0.15rem;
+    inset-inline-end: 0;
+    display: inline-flex;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.2rem;
+    border: 2px solid var(--color-background, #050505);
+    border-radius: 999px;
+    color: var(--color-background, #050505);
+    background: var(--color-highlight, #d3a35a);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .site-header__cart-count[hidden] {
+    display: none;
+  }
+
+  .site-header__cart:focus-visible {
+    outline: 2px solid var(--color-foreground, #f3f0e8);
+    outline-offset: 2px;
   }
 
   .header-drawer {
@@ -381,6 +492,17 @@
     color: var(--color-highlight, #d3a35a);
   }
 
+  .header-drawer__cart-link {
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .header-drawer__cart-count {
+    flex: 0 0 auto;
+    color: var(--color-highlight, #d3a35a);
+    font-variant-numeric: tabular-nums;
+  }
+
   .header-drawer__details {
     display: flex;
     flex-direction: column;
@@ -470,7 +592,8 @@
 
   @media (hover: hover) {
     .site-header__desktop-link:hover,
-    .header-drawer__link:hover {
+    .header-drawer__link:hover,
+    .site-header__cart:hover {
       color: var(--color-highlight, #d3a35a);
     }
 
@@ -535,6 +658,10 @@
       animation: bean-ben-mobile-header-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
     }
 
+    .site-header__cart {
+      animation: bean-ben-mobile-header-enter 450ms cubic-bezier(0.22, 1, 0.36, 1) 70ms both;
+    }
+
     .header-drawer[open] .header-drawer__panel {
       animation: bean-ben-mobile-drawer-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
     }
@@ -586,6 +713,7 @@
 
     .site-header__desktop-nav {
       display: block;
+      margin-inline-start: auto;
     }
 
     .site-header__desktop-list {
@@ -618,6 +746,11 @@
     .header-drawer {
       display: none;
     }
+
+    .site-header__utilities {
+      gap: 0;
+      margin-inline-start: 1.5rem;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -631,6 +764,7 @@
     }
 
     .site-header__logo,
+    .site-header__cart,
     .header-drawer__toggle,
     .header-drawer__panel,
     .header-drawer__item,
@@ -641,6 +775,24 @@
 {% endstylesheet %}
 
 {% javascript %}
+  const synchronizeHeaderCart = (event) => {
+    const eventCount = Number(event?.detail?.cart?.item_count);
+
+    if (Number.isFinite(eventCount)) {
+      document.querySelectorAll('[data-cart-count]').forEach((cartCount) => {
+        cartCount.textContent = eventCount;
+      });
+    }
+
+    document.querySelectorAll('[data-cart-count-badge]').forEach((badge) => {
+      const count = Number.parseInt(badge.textContent, 10) || 0;
+      badge.hidden = count < 1;
+    });
+  };
+
+  synchronizeHeaderCart();
+  document.addEventListener('cart:updated', synchronizeHeaderCart);
+
   document.querySelectorAll('.header-drawer').forEach((drawer) => {
     drawer.querySelectorAll('a').forEach((link) => {
       link.addEventListener('click', () => {
