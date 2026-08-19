@@ -80,6 +80,7 @@
   },
   "catalog": {
     "categories": "Product categories",
+    "current_category": "Current",
     "product_count": {
       "one": "{{ count }} product",
       "other": "{{ count }} products"
